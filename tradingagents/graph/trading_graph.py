@@ -21,6 +21,7 @@ from tradingagents.agents.utils.agent_states import (
     RiskDebateState,
 )
 from tradingagents.dataflows.interface import set_config
+from tradingagents.agents.utils.agent_polygon_util import PolygonToolkit
 
 from .conditional_logic import ConditionalLogic
 from .setup import GraphSetup
@@ -61,6 +62,10 @@ class TradingAgentsGraph:
         if self.config["llm_provider"].lower() == "openai" or self.config["llm_provider"] == "ollama" or self.config["llm_provider"] == "openrouter":
             self.deep_thinking_llm = ChatOpenAI(model=self.config["deep_think_llm"], base_url=self.config["backend_url"])
             self.quick_thinking_llm = ChatOpenAI(model=self.config["quick_think_llm"], base_url=self.config["backend_url"])
+        elif self.config["llm_provider"].lower() == "aliyun":
+            print(f"Using Aliyun API key: {self.config['aliyun_api_key']}")
+            self.deep_thinking_llm = ChatOpenAI(model=self.config["deep_think_llm"], base_url=self.config["backend_url"], api_key=self.config["aliyun_api_key"])
+            self.quick_thinking_llm = ChatOpenAI(model=self.config["quick_think_llm"], base_url=self.config["backend_url"], api_key=self.config["aliyun_api_key"])
         elif self.config["llm_provider"].lower() == "anthropic":
             self.deep_thinking_llm = ChatAnthropic(model=self.config["deep_think_llm"], base_url=self.config["backend_url"])
             self.quick_thinking_llm = ChatAnthropic(model=self.config["quick_think_llm"], base_url=self.config["backend_url"])
@@ -71,6 +76,7 @@ class TradingAgentsGraph:
             raise ValueError(f"Unsupported LLM provider: {self.config['llm_provider']}")
         
         self.toolkit = Toolkit(config=self.config)
+        self.polygon_toolkit = PolygonToolkit(config=self.config)
 
         # Initialize memories
         self.bull_memory = FinancialSituationMemory("bull_memory", self.config)
@@ -88,6 +94,7 @@ class TradingAgentsGraph:
             self.quick_thinking_llm,
             self.deep_thinking_llm,
             self.toolkit,
+            self.polygon_toolkit,
             self.tool_nodes,
             self.bull_memory,
             self.bear_memory,
@@ -115,11 +122,15 @@ class TradingAgentsGraph:
             "market": ToolNode(
                 [
                     # online tools
-                    self.toolkit.get_YFin_data_online,
-                    self.toolkit.get_stockstats_indicators_report_online,
+                    # self.toolkit.get_YFin_data_online,
+                    # self.toolkit.get_stockstats_indicators_report_online,
+                    self.polygon_toolkit.get_polygon_data_window,
+                    self.polygon_toolkit.get_stockstats_indicators_report_window,
                     # offline tools
-                    self.toolkit.get_YFin_data,
-                    self.toolkit.get_stockstats_indicators_report,
+                    # self.toolkit.get_YFin_data,
+                    # self.toolkit.get_stockstats_indicators_report,
+                    # self.polygon_toolkit.get_polygon_data_window,
+                    # self.polygon_toolkit.get_stockstats_indicators_report,
                 ]
             ),
             "social": ToolNode(

@@ -3,7 +3,7 @@ import time
 import json
 
 
-def create_market_analyst(llm, toolkit):
+def create_market_analyst(llm, toolkit, polygon_toolkit):
 
     def market_analyst_node(state):
         current_date = state["trade_date"]
@@ -12,13 +12,18 @@ def create_market_analyst(llm, toolkit):
 
         if toolkit.config["online_tools"]:
             tools = [
-                toolkit.get_YFin_data_online,
-                toolkit.get_stockstats_indicators_report_online,
+                # toolkit.get_YFin_data_online,
+                # toolkit.get_stockstats_indicators_report_online,
+                # polygon_toolkit.get_polygon_data_window,
+                # polygon_toolkit.get_stockstats_indicators_report_window,
+
             ]
         else:
             tools = [
-                toolkit.get_YFin_data,
-                toolkit.get_stockstats_indicators_report,
+                # toolkit.get_YFin_data,
+                # toolkit.get_stockstats_indicators_report,
+                # polygon_toolkit.get_polygon_data_window,
+                # polygon_toolkit.get_stockstats_indicators_report_window,
             ]
 
         system_message = (

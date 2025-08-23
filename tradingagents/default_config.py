@@ -9,14 +9,16 @@ DEFAULT_CONFIG = {
         "dataflows/data_cache",
     ),
     # LLM settings
-    "llm_provider": "openai",
-    "deep_think_llm": "o4-mini",
-    "quick_think_llm": "gpt-4o-mini",
-    "backend_url": "https://api.openai.com/v1",
+    "llm_provider": "aliyun",
+    "deep_think_llm": "qwen3-235b-a22b-instruct-2507",
+    "quick_think_llm": "qwen-plus",
+    "backend_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
     # Debate and discussion settings
     "max_debate_rounds": 1,
     "max_risk_discuss_rounds": 1,
     "max_recur_limit": 100,
     # Tool settings
     "online_tools": True,
+    # API Keys
+    "polygon_api_key": os.getenv("POLYGON_API_KEY", ""),
 }

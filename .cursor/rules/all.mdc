@@ -1,0 +1,6 @@
+---
+alwaysApply: true
+---
+
+always use uv cmd mananger project and run project
+Do not create test or demo files unless receiving commands from the user

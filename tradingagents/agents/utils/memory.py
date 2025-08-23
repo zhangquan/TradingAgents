@@ -7,9 +7,15 @@ class FinancialSituationMemory:
     def __init__(self, name, config):
         if config["backend_url"] == "http://localhost:11434/v1":
             self.embedding = "nomic-embed-text"
+        elif config["llm_provider"].lower() == "aliyun":
+            self.embedding = "text-embedding-v4"
         else:
             self.embedding = "text-embedding-3-small"
-        self.client = OpenAI(base_url=config["backend_url"])
+        
+        if config["llm_provider"].lower() == "aliyun":
+            self.client = OpenAI(base_url=config["backend_url"], api_key=config["aliyun_api_key"])
+        else:
+            self.client = OpenAI(base_url=config["backend_url"])
         self.chroma_client = chromadb.Client(Settings(allow_reset=True))
         self.situation_collection = self.chroma_client.create_collection(name=name)
 

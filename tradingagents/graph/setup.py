@@ -8,6 +8,7 @@ from langgraph.prebuilt import ToolNode
 from tradingagents.agents import *
 from tradingagents.agents.utils.agent_states import AgentState
 from tradingagents.agents.utils.agent_utils import Toolkit
+from tradingagents.agents.utils.agent_polygon_util import PolygonToolkit
 
 from .conditional_logic import ConditionalLogic
 
@@ -20,6 +21,7 @@ class GraphSetup:
         quick_thinking_llm: ChatOpenAI,
         deep_thinking_llm: ChatOpenAI,
         toolkit: Toolkit,
+        polygon_toolkit: PolygonToolkit,
         tool_nodes: Dict[str, ToolNode],
         bull_memory,
         bear_memory,
@@ -32,6 +34,7 @@ class GraphSetup:
         self.quick_thinking_llm = quick_thinking_llm
         self.deep_thinking_llm = deep_thinking_llm
         self.toolkit = toolkit
+        self.polygon_toolkit = polygon_toolkit
         self.tool_nodes = tool_nodes
         self.bull_memory = bull_memory
         self.bear_memory = bear_memory
@@ -62,28 +65,28 @@ class GraphSetup:
 
         if "market" in selected_analysts:
             analyst_nodes["market"] = create_market_analyst(
-                self.quick_thinking_llm, self.toolkit
+                self.quick_thinking_llm, self.toolkit, self.polygon_toolkit
             )
             delete_nodes["market"] = create_msg_delete()
             tool_nodes["market"] = self.tool_nodes["market"]
 
         if "social" in selected_analysts:
             analyst_nodes["social"] = create_social_media_analyst(
-                self.quick_thinking_llm, self.toolkit
+                self.quick_thinking_llm, self.toolkit, self.polygon_toolkit
             )
             delete_nodes["social"] = create_msg_delete()
             tool_nodes["social"] = self.tool_nodes["social"]
 
         if "news" in selected_analysts:
             analyst_nodes["news"] = create_news_analyst(
-                self.quick_thinking_llm, self.toolkit
+                self.quick_thinking_llm, self.toolkit, self.polygon_toolkit
             )
             delete_nodes["news"] = create_msg_delete()
             tool_nodes["news"] = self.tool_nodes["news"]
 
         if "fundamentals" in selected_analysts:
             analyst_nodes["fundamentals"] = create_fundamentals_analyst(
-                self.quick_thinking_llm, self.toolkit
+                self.quick_thinking_llm, self.toolkit, self.polygon_toolkit
             )
             delete_nodes["fundamentals"] = create_msg_delete()
             tool_nodes["fundamentals"] = self.tool_nodes["fundamentals"]

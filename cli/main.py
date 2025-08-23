@@ -24,6 +24,8 @@ from tradingagents.graph.trading_graph import TradingAgentsGraph
 from tradingagents.default_config import DEFAULT_CONFIG
 from cli.models import AnalystType
 from cli.utils import *
+import os
+from dotenv import load_dotenv
 
 console = Console()
 
@@ -734,6 +736,7 @@ def extract_content_string(content):
 def run_analysis():
     # First get all user selections
     selections = get_user_selections()
+    load_dotenv()
 
     # Create config with selected research depth
     config = DEFAULT_CONFIG.copy()
@@ -743,6 +746,8 @@ def run_analysis():
     config["deep_think_llm"] = selections["deep_thinker"]
     config["backend_url"] = selections["backend_url"]
     config["llm_provider"] = selections["llm_provider"].lower()
+    # Aliyun API key is in the environment variable
+    config["aliyun_api_key"] = os.getenv("ALIYUN_API_KEY")
 
     # Initialize the graph
     graph = TradingAgentsGraph(

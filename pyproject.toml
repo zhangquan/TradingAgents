@@ -19,6 +19,7 @@ dependencies = [
     "langgraph>=0.4.8",
     "pandas>=2.3.0",
     "parsel>=1.10.0",
+    "polygon-api-client>=1.13.3",
     "praw>=7.8.1",
     "pytz>=2025.2",
     "questionary>=2.1.0",
@@ -31,4 +32,6 @@ dependencies = [
     "tushare>=1.4.21",
     "typing-extensions>=4.14.0",
     "yfinance>=0.2.63",
+    "python-dotenv>=1.0.0",
+    "langchain-core>=0.3.65",
 ]
