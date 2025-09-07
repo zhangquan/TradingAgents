@@ -1,9 +1,10 @@
 from langchain_core.messages import AIMessage
 import time
 import json
+from tradingagents.agents.utils.language_utils import get_language_instruction
 
 
-def create_bear_researcher(llm, memory):
+def create_bear_researcher(llm, memory, config=None):
     def bear_node(state) -> dict:
         investment_debate_state = state["investment_debate_state"]
         history = investment_debate_state.get("history", "")
@@ -18,9 +19,14 @@ def create_bear_researcher(llm, memory):
         curr_situation = f"{market_research_report}\n\n{sentiment_report}\n\n{news_report}\n\n{fundamentals_report}"
         past_memories = memory.get_memories(curr_situation, n_matches=2)
 
+        # Get language configuration
+        report_language = config.get("report_language", "en-US") if config else "en-US"
+        language_instruction = get_language_instruction(report_language)
+
         past_memory_str = ""
-        for i, rec in enumerate(past_memories, 1):
-            past_memory_str += rec["recommendation"] + "\n\n"
+        if past_memories:
+            for i, rec in enumerate(past_memories, 1):
+                past_memory_str += rec["recommendation"] + "\n\n"
 
         prompt = f"""You are a Bear Analyst making the case against investing in the stock. Your goal is to present a well-reasoned argument emphasizing risks, challenges, and negative indicators. Leverage the provided research and data to highlight potential downsides and counter bullish arguments effectively.
 
@@ -42,6 +48,8 @@ Conversation history of the debate: {history}
 Last bull argument: {current_response}
 Reflections from similar situations and lessons learned: {past_memory_str}
 Use this information to deliver a compelling bear argument, refute the bull's claims, and engage in a dynamic debate that demonstrates the risks and weaknesses of investing in the stock. You must also address reflections and learn from lessons and mistakes you made in the past.
+
+{language_instruction}
 """
 
         response = llm.invoke(prompt)

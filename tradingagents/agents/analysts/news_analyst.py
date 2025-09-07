@@ -4,13 +4,14 @@ import json
 from tradingagents.agents.utils.language_utils import get_language_instruction
 
 
-def create_news_analyst(llm, toolkit, polygon_toolkit):
+def create_news_analyst(llm, toolkit, polygon_toolkit, config=None):
     def news_analyst_node(state):
         current_date = state["trade_date"]
         ticker = state["company_of_interest"]
         
-        # Get language configuration
-        report_language = toolkit.config.get("report_language", "en-US")
+        # Get language configuration - prefer passed config, fallback to toolkit.config
+        effective_config = config or toolkit.config
+        report_language = effective_config.get("report_language", "en-US")
         language_instruction = get_language_instruction(report_language)
 
         if toolkit.config["online_tools"]:
