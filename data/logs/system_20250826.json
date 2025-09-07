@@ -1,0 +1,1398 @@
+{
+  "events": [
+    {
+      "event_type": "server_startup",
+      "timestamp": "2025-08-26T21:25:22.964216",
+      "data": {
+        "timestamp": "2025-08-26T21:25:22.964204",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "event_type": "analysis_completed",
+      "timestamp": "2025-08-26T21:49:48.128878",
+      "data": {
+        "task_id": "task_20250826_214136_TSLA_5468e304",
+        "analysis_id": "analysis_TSLA_20250826_214948",
+        "ticker": "TSLA",
+        "status": "completed"
+      }
+    },
+    {
+      "event_type": "analysis_error",
+      "timestamp": "2025-08-26T21:50:36.208566",
+      "data": {
+        "task_id": "task_20250826_215034_AAPL_cff3517a",
+        "ticker": "AAPL",
+        "error": "create_news_analyst() takes 2 positional arguments but 3 were given"
+      }
+    },
+    {
+      "event_type": "analysis_error",
+      "timestamp": "2025-08-26T21:53:10.445867",
+      "data": {
+        "task_id": "task_20250826_215309_TSLA_288535bf",
+        "ticker": "TSLA",
+        "error": "create_news_analyst() takes 2 positional arguments but 3 were given"
+      }
+    },
+    {
+      "event_type": "server_startup",
+      "timestamp": "2025-08-26T22:06:18.740749",
+      "data": {
+        "timestamp": "2025-08-26T22:06:18.740737",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_saved",
+      "timestamp": "2025-08-26T22:06:37.322658",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:06:37.322628"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:07:12.688307",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:07:12.688300"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:07:12.689074",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:07:12.689068"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_saved",
+      "timestamp": "2025-08-26T22:07:12.689805",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:07:12.689800"
+      }
+    },
+    {
+      "event_type": "scheduled_task_updated",
+      "timestamp": "2025-08-26T22:07:12.690216",
+      "data": {
+        "task_id": "schedule_20250826_220637_AAPL_427201bc",
+        "updates": [
+          "enabled",
+          "last_error"
+        ],
+        "timestamp": "2025-08-26T22:07:12.690210"
+      }
+    },
+    {
+      "event_type": "server_startup",
+      "timestamp": "2025-08-26T22:07:12.767119",
+      "data": {
+        "timestamp": "2025-08-26T22:07:12.767108",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:07:43.531136",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:07:43.531113"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_saved",
+      "timestamp": "2025-08-26T22:07:43.532725",
+      "data": {
+        "task_count": 0,
+        "timestamp": "2025-08-26T22:07:43.532717"
+      }
+    },
+    {
+      "event_type": "scheduled_task_deleted",
+      "timestamp": "2025-08-26T22:07:43.533349",
+      "data": {
+        "task_id": "schedule_20250826_220637_AAPL_427201bc",
+        "timestamp": "2025-08-26T22:07:43.533340"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:08:25.327027",
+      "data": {
+        "task_count": 0,
+        "timestamp": "2025-08-26T22:08:25.327018"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:08:36.376723",
+      "data": {
+        "task_count": 0,
+        "timestamp": "2025-08-26T22:08:36.376714"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:08:47.311631",
+      "data": {
+        "task_count": 0,
+        "timestamp": "2025-08-26T22:08:47.311621"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:09:16.570847",
+      "data": {
+        "task_count": 0,
+        "timestamp": "2025-08-26T22:09:16.570838"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_saved",
+      "timestamp": "2025-08-26T22:09:16.572483",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:09:16.572476"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:09:24.736266",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:09:24.736254"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_saved",
+      "timestamp": "2025-08-26T22:09:24.737695",
+      "data": {
+        "task_count": 2,
+        "timestamp": "2025-08-26T22:09:24.737689"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:09:39.309183",
+      "data": {
+        "task_count": 2,
+        "timestamp": "2025-08-26T22:09:39.309172"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:09:39.310653",
+      "data": {
+        "task_count": 2,
+        "timestamp": "2025-08-26T22:09:39.310643"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_saved",
+      "timestamp": "2025-08-26T22:09:39.312089",
+      "data": {
+        "task_count": 2,
+        "timestamp": "2025-08-26T22:09:39.312081"
+      }
+    },
+    {
+      "event_type": "scheduled_task_updated",
+      "timestamp": "2025-08-26T22:09:39.313113",
+      "data": {
+        "task_id": "schedule_20250826_220916_TSLA_1829f63f",
+        "updates": [
+          "enabled",
+          "last_error"
+        ],
+        "timestamp": "2025-08-26T22:09:39.313105"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:09:39.314641",
+      "data": {
+        "task_count": 2,
+        "timestamp": "2025-08-26T22:09:39.314627"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_saved",
+      "timestamp": "2025-08-26T22:09:39.316567",
+      "data": {
+        "task_count": 2,
+        "timestamp": "2025-08-26T22:09:39.316558"
+      }
+    },
+    {
+      "event_type": "scheduled_task_updated",
+      "timestamp": "2025-08-26T22:09:39.317708",
+      "data": {
+        "task_id": "schedule_20250826_220924_TSLA_22872d4d",
+        "updates": [
+          "enabled",
+          "last_error"
+        ],
+        "timestamp": "2025-08-26T22:09:39.317696"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:11:28.176812",
+      "data": {
+        "task_count": 2,
+        "timestamp": "2025-08-26T22:11:28.176803"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_saved",
+      "timestamp": "2025-08-26T22:11:28.178531",
+      "data": {
+        "task_count": 3,
+        "timestamp": "2025-08-26T22:11:28.178523"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:12:03.657521",
+      "data": {
+        "task_count": 3,
+        "timestamp": "2025-08-26T22:12:03.657512"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_saved",
+      "timestamp": "2025-08-26T22:12:03.663584",
+      "data": {
+        "task_count": 4,
+        "timestamp": "2025-08-26T22:12:03.663562"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:16:30.365382",
+      "data": {
+        "task_count": 4,
+        "timestamp": "2025-08-26T22:16:30.365370"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:16:30.367205",
+      "data": {
+        "task_count": 4,
+        "timestamp": "2025-08-26T22:16:30.367194"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_saved",
+      "timestamp": "2025-08-26T22:16:30.369027",
+      "data": {
+        "task_count": 4,
+        "timestamp": "2025-08-26T22:16:30.369019"
+      }
+    },
+    {
+      "event_type": "scheduled_task_updated",
+      "timestamp": "2025-08-26T22:16:30.370064",
+      "data": {
+        "task_id": "schedule_20250826_221128_TSLA_0fe3e27e",
+        "updates": [
+          "enabled",
+          "last_error"
+        ],
+        "timestamp": "2025-08-26T22:16:30.370056"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:16:30.371837",
+      "data": {
+        "task_count": 4,
+        "timestamp": "2025-08-26T22:16:30.371826"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_saved",
+      "timestamp": "2025-08-26T22:16:30.373403",
+      "data": {
+        "task_count": 4,
+        "timestamp": "2025-08-26T22:16:30.373396"
+      }
+    },
+    {
+      "event_type": "scheduled_task_updated",
+      "timestamp": "2025-08-26T22:16:30.374453",
+      "data": {
+        "task_id": "schedule_20250826_221203_TSLA_fcd6b1dc",
+        "updates": [
+          "enabled",
+          "last_error"
+        ],
+        "timestamp": "2025-08-26T22:16:30.374445"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:16:53.083368",
+      "data": {
+        "task_count": 4,
+        "timestamp": "2025-08-26T22:16:53.083345"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:17:35.542786",
+      "data": {
+        "task_count": 4,
+        "timestamp": "2025-08-26T22:17:35.542771"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:18:26.357874",
+      "data": {
+        "task_count": 4,
+        "timestamp": "2025-08-26T22:18:26.357863"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:20:31.938549",
+      "data": {
+        "task_count": 4,
+        "timestamp": "2025-08-26T22:20:31.938540"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:20:49.157352",
+      "data": {
+        "task_count": 4,
+        "timestamp": "2025-08-26T22:20:49.157345"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_saved",
+      "timestamp": "2025-08-26T22:20:49.159329",
+      "data": {
+        "task_count": 5,
+        "timestamp": "2025-08-26T22:20:49.159321"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:21:24.576367",
+      "data": {
+        "task_count": 5,
+        "timestamp": "2025-08-26T22:21:24.576356"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_saved",
+      "timestamp": "2025-08-26T22:21:24.579362",
+      "data": {
+        "task_count": 6,
+        "timestamp": "2025-08-26T22:21:24.579350"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:22:19.644417",
+      "data": {
+        "task_count": 6,
+        "timestamp": "2025-08-26T22:22:19.644407"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:22:19.646112",
+      "data": {
+        "task_count": 6,
+        "timestamp": "2025-08-26T22:22:19.646104"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_saved",
+      "timestamp": "2025-08-26T22:22:19.647937",
+      "data": {
+        "task_count": 6,
+        "timestamp": "2025-08-26T22:22:19.647931"
+      }
+    },
+    {
+      "event_type": "scheduled_task_updated",
+      "timestamp": "2025-08-26T22:22:19.648977",
+      "data": {
+        "task_id": "schedule_20250826_222049_TSLA_042e0288",
+        "updates": [
+          "enabled",
+          "last_error"
+        ],
+        "timestamp": "2025-08-26T22:22:19.648970"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:22:19.650343",
+      "data": {
+        "task_count": 6,
+        "timestamp": "2025-08-26T22:22:19.650336"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_saved",
+      "timestamp": "2025-08-26T22:22:19.652299",
+      "data": {
+        "task_count": 6,
+        "timestamp": "2025-08-26T22:22:19.652291"
+      }
+    },
+    {
+      "event_type": "scheduled_task_updated",
+      "timestamp": "2025-08-26T22:22:19.653778",
+      "data": {
+        "task_id": "schedule_20250826_222124_TSLA_d084ebc8",
+        "updates": [
+          "enabled",
+          "last_error"
+        ],
+        "timestamp": "2025-08-26T22:22:19.653770"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:23:37.846863",
+      "data": {
+        "task_count": 6,
+        "timestamp": "2025-08-26T22:23:37.846853"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:23:51.184759",
+      "data": {
+        "task_count": 6,
+        "timestamp": "2025-08-26T22:23:51.184747"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:24:01.353772",
+      "data": {
+        "task_count": 6,
+        "timestamp": "2025-08-26T22:24:01.353762"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:25:19.250133",
+      "data": {
+        "task_count": 6,
+        "timestamp": "2025-08-26T22:25:19.250122"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:27:35.670186",
+      "data": {
+        "task_count": 6,
+        "timestamp": "2025-08-26T22:27:35.670175"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:27:51.572350",
+      "data": {
+        "task_count": 6,
+        "timestamp": "2025-08-26T22:27:51.572340"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:28:37.204093",
+      "data": {
+        "task_count": 6,
+        "timestamp": "2025-08-26T22:28:37.204083"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:28:37.205902",
+      "data": {
+        "task_count": 6,
+        "timestamp": "2025-08-26T22:28:37.205894"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_saved",
+      "timestamp": "2025-08-26T22:28:37.207752",
+      "data": {
+        "task_count": 5,
+        "timestamp": "2025-08-26T22:28:37.207745"
+      }
+    },
+    {
+      "event_type": "scheduled_task_deleted",
+      "timestamp": "2025-08-26T22:28:37.209070",
+      "data": {
+        "task_id": "schedule_20250826_220916_TSLA_1829f63f",
+        "timestamp": "2025-08-26T22:28:37.209062"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:28:48.397497",
+      "data": {
+        "task_count": 5,
+        "timestamp": "2025-08-26T22:28:48.397486"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:29:09.118699",
+      "data": {
+        "task_count": 5,
+        "timestamp": "2025-08-26T22:29:09.118680"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:29:09.120962",
+      "data": {
+        "task_count": 5,
+        "timestamp": "2025-08-26T22:29:09.120945"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_saved",
+      "timestamp": "2025-08-26T22:29:09.123137",
+      "data": {
+        "task_count": 4,
+        "timestamp": "2025-08-26T22:29:09.123130"
+      }
+    },
+    {
+      "event_type": "scheduled_task_deleted",
+      "timestamp": "2025-08-26T22:29:09.124672",
+      "data": {
+        "task_id": "schedule_20250826_220924_TSLA_22872d4d",
+        "timestamp": "2025-08-26T22:29:09.124649"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:29:36.075768",
+      "data": {
+        "task_count": 4,
+        "timestamp": "2025-08-26T22:29:36.075759"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:29:41.368324",
+      "data": {
+        "task_count": 4,
+        "timestamp": "2025-08-26T22:29:41.368314"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:29:44.752851",
+      "data": {
+        "task_count": 4,
+        "timestamp": "2025-08-26T22:29:44.752833"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:29:49.213302",
+      "data": {
+        "task_count": 4,
+        "timestamp": "2025-08-26T22:29:49.213292"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:29:49.215426",
+      "data": {
+        "task_count": 4,
+        "timestamp": "2025-08-26T22:29:49.215417"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_saved",
+      "timestamp": "2025-08-26T22:29:49.217321",
+      "data": {
+        "task_count": 3,
+        "timestamp": "2025-08-26T22:29:49.217314"
+      }
+    },
+    {
+      "event_type": "scheduled_task_deleted",
+      "timestamp": "2025-08-26T22:29:49.219059",
+      "data": {
+        "task_id": "schedule_20250826_221128_TSLA_0fe3e27e",
+        "timestamp": "2025-08-26T22:29:49.219049"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:29:49.225789",
+      "data": {
+        "task_count": 3,
+        "timestamp": "2025-08-26T22:29:49.225779"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:29:53.499067",
+      "data": {
+        "task_count": 3,
+        "timestamp": "2025-08-26T22:29:53.499057"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:29:53.500952",
+      "data": {
+        "task_count": 3,
+        "timestamp": "2025-08-26T22:29:53.500944"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_saved",
+      "timestamp": "2025-08-26T22:29:53.502828",
+      "data": {
+        "task_count": 2,
+        "timestamp": "2025-08-26T22:29:53.502821"
+      }
+    },
+    {
+      "event_type": "scheduled_task_deleted",
+      "timestamp": "2025-08-26T22:29:53.504389",
+      "data": {
+        "task_id": "schedule_20250826_222049_TSLA_042e0288",
+        "timestamp": "2025-08-26T22:29:53.504381"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:29:53.510090",
+      "data": {
+        "task_count": 2,
+        "timestamp": "2025-08-26T22:29:53.510079"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:29:56.201302",
+      "data": {
+        "task_count": 2,
+        "timestamp": "2025-08-26T22:29:56.201290"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:29:56.205739",
+      "data": {
+        "task_count": 2,
+        "timestamp": "2025-08-26T22:29:56.205723"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_saved",
+      "timestamp": "2025-08-26T22:29:56.209659",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:29:56.209650"
+      }
+    },
+    {
+      "event_type": "scheduled_task_deleted",
+      "timestamp": "2025-08-26T22:29:56.211657",
+      "data": {
+        "task_id": "schedule_20250826_222124_TSLA_d084ebc8",
+        "timestamp": "2025-08-26T22:29:56.211640"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:29:56.218741",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:29:56.218730"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:29:57.603333",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:29:57.603322"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:29:57.605952",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:29:57.605942"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_saved",
+      "timestamp": "2025-08-26T22:29:57.608253",
+      "data": {
+        "task_count": 0,
+        "timestamp": "2025-08-26T22:29:57.608246"
+      }
+    },
+    {
+      "event_type": "scheduled_task_deleted",
+      "timestamp": "2025-08-26T22:29:57.610162",
+      "data": {
+        "task_id": "schedule_20250826_221203_TSLA_fcd6b1dc",
+        "timestamp": "2025-08-26T22:29:57.610118"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:29:57.618667",
+      "data": {
+        "task_count": 0,
+        "timestamp": "2025-08-26T22:29:57.618651"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:30:01.587761",
+      "data": {
+        "task_count": 0,
+        "timestamp": "2025-08-26T22:30:01.587746"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:30:08.981021",
+      "data": {
+        "task_count": 0,
+        "timestamp": "2025-08-26T22:30:08.981014"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_saved",
+      "timestamp": "2025-08-26T22:30:08.985009",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:30:08.984999"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:30:08.996493",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:30:08.996474"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:30:14.954868",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:30:14.954843"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:30:18.132207",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:30:18.132198"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:30:18.134933",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:30:18.134922"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_saved",
+      "timestamp": "2025-08-26T22:30:18.137679",
+      "data": {
+        "task_count": 0,
+        "timestamp": "2025-08-26T22:30:18.137668"
+      }
+    },
+    {
+      "event_type": "scheduled_task_deleted",
+      "timestamp": "2025-08-26T22:30:18.140123",
+      "data": {
+        "task_id": "schedule_20250826_223008_TSLA_7735047e",
+        "timestamp": "2025-08-26T22:30:18.140104"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:30:18.148379",
+      "data": {
+        "task_count": 0,
+        "timestamp": "2025-08-26T22:30:18.148350"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:30:23.827061",
+      "data": {
+        "task_count": 0,
+        "timestamp": "2025-08-26T22:30:23.827053"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_saved",
+      "timestamp": "2025-08-26T22:30:23.829586",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:30:23.829579"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:30:23.837944",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:30:23.837927"
+      }
+    },
+    {
+      "event_type": "analysis_completed",
+      "timestamp": "2025-08-26T22:39:13.044623",
+      "data": {
+        "task_id": "task_20250826_223041_TSLA_60ed08ec",
+        "analysis_id": "analysis_TSLA_20250826_223913",
+        "ticker": "TSLA",
+        "status": "completed"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:39:13.049105",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:39:13.049098"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_saved",
+      "timestamp": "2025-08-26T22:39:13.051541",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:39:13.051534"
+      }
+    },
+    {
+      "event_type": "scheduled_task_updated",
+      "timestamp": "2025-08-26T22:39:13.053500",
+      "data": {
+        "task_id": "schedule_20250826_223023_TSLA_900bd330",
+        "updates": [
+          "last_run",
+          "execution_count"
+        ],
+        "timestamp": "2025-08-26T22:39:13.053492"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:39:13.056250",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:39:13.056242"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:40:11.876718",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:40:11.876632"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:40:48.780075",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:40:48.780057"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:40:48.797688",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:40:48.797671"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:41:08.073885",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:41:08.073872"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:41:08.089420",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:41:08.089405"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:41:13.884961",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:41:13.884948"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:41:13.899410",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:41:13.899397"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:45:15.579018",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:45:15.578995"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:45:27.057855",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:45:27.057814"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:45:52.312168",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:45:52.312157"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:45:52.315871",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:45:52.315863"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_saved",
+      "timestamp": "2025-08-26T22:45:52.318588",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:45:52.318581"
+      }
+    },
+    {
+      "event_type": "scheduled_task_updated",
+      "timestamp": "2025-08-26T22:45:52.320760",
+      "data": {
+        "task_id": "schedule_20250826_223023_TSLA_900bd330",
+        "updates": [
+          "enabled",
+          "last_error"
+        ],
+        "timestamp": "2025-08-26T22:45:52.320753"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:46:41.195093",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:46:41.195076"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:46:56.329679",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:46:56.329667"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:46:56.346897",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:46:56.346882"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:48:25.916283",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:48:25.916265"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:51:04.281194",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:51:04.281184"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:51:26.687533",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:51:26.687475"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:51:31.694383",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:51:31.694354"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:51:31.704561",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:51:31.704505"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:51:46.837201",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:51:46.837193"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_saved",
+      "timestamp": "2025-08-26T22:51:46.841594",
+      "data": {
+        "task_count": 2,
+        "timestamp": "2025-08-26T22:51:46.841584"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:51:46.851363",
+      "data": {
+        "task_count": 2,
+        "timestamp": "2025-08-26T22:51:46.851344"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:51:52.967896",
+      "data": {
+        "task_count": 2,
+        "timestamp": "2025-08-26T22:51:52.967884"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:51:52.970716",
+      "data": {
+        "task_count": 2,
+        "timestamp": "2025-08-26T22:51:52.970707"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_saved",
+      "timestamp": "2025-08-26T22:51:52.973360",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:51:52.973353"
+      }
+    },
+    {
+      "event_type": "scheduled_task_deleted",
+      "timestamp": "2025-08-26T22:51:52.976246",
+      "data": {
+        "task_id": "schedule_20250826_223023_TSLA_900bd330",
+        "timestamp": "2025-08-26T22:51:52.976237"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:51:52.983756",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:51:52.983744"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:59:27.542740",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:59:27.542728"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T22:59:27.546218",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:59:27.546206"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_saved",
+      "timestamp": "2025-08-26T22:59:27.549455",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T22:59:27.549448"
+      }
+    },
+    {
+      "event_type": "scheduled_task_updated",
+      "timestamp": "2025-08-26T22:59:27.552746",
+      "data": {
+        "task_id": "schedule_20250826_225146_AAPL_3c8bcdf4",
+        "updates": [
+          "enabled",
+          "last_error"
+        ],
+        "timestamp": "2025-08-26T22:59:27.552714"
+      }
+    },
+    {
+      "event_type": "server_startup",
+      "timestamp": "2025-08-26T22:59:27.697044",
+      "data": {
+        "timestamp": "2025-08-26T22:59:27.697021",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "event_type": "analysis_completed",
+      "timestamp": "2025-08-26T23:00:44.798358",
+      "data": {
+        "task_id": "task_20250826_225157_AAPL_f450c5df",
+        "analysis_id": "analysis_AAPL_20250826_230044",
+        "ticker": "AAPL",
+        "status": "completed"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T23:00:44.802518",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T23:00:44.802509"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_saved",
+      "timestamp": "2025-08-26T23:00:44.805901",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T23:00:44.805893"
+      }
+    },
+    {
+      "event_type": "scheduled_task_updated",
+      "timestamp": "2025-08-26T23:00:44.808587",
+      "data": {
+        "task_id": "schedule_20250826_225146_AAPL_3c8bcdf4",
+        "updates": [
+          "last_run",
+          "execution_count"
+        ],
+        "timestamp": "2025-08-26T23:00:44.808576"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T23:00:44.812040",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T23:00:44.812031"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T23:00:49.822503",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T23:00:49.822490"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T23:00:54.088545",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T23:00:54.088535"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T23:00:54.189882",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T23:00:54.189871"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T23:00:54.196116",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T23:00:54.196107"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T23:00:54.204728",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T23:00:54.204718"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T23:00:54.218143",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T23:00:54.218131"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T23:00:54.241314",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T23:00:54.241302"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T23:00:54.249985",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T23:00:54.249967"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T23:00:55.862125",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T23:00:55.862110"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T23:00:55.878457",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T23:00:55.878441"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T23:01:26.551977",
+      "data": {
+        "task_count": 1,
+        "timestamp": "2025-08-26T23:01:26.551969"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_saved",
+      "timestamp": "2025-08-26T23:01:26.556599",
+      "data": {
+        "task_count": 2,
+        "timestamp": "2025-08-26T23:01:26.556558"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T23:01:26.563858",
+      "data": {
+        "task_count": 2,
+        "timestamp": "2025-08-26T23:01:26.563846"
+      }
+    },
+    {
+      "event_type": "analysis_completed",
+      "timestamp": "2025-08-26T23:09:54.930294",
+      "data": {
+        "task_id": "task_20250826_230131_AAPL_bc6beecd",
+        "analysis_id": "analysis_AAPL_20250826_230954",
+        "ticker": "AAPL",
+        "status": "completed"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T23:09:54.933931",
+      "data": {
+        "task_count": 2,
+        "timestamp": "2025-08-26T23:09:54.933925"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_saved",
+      "timestamp": "2025-08-26T23:09:54.937037",
+      "data": {
+        "task_count": 2,
+        "timestamp": "2025-08-26T23:09:54.937031"
+      }
+    },
+    {
+      "event_type": "scheduled_task_updated",
+      "timestamp": "2025-08-26T23:09:54.939806",
+      "data": {
+        "task_id": "schedule_20250826_230126_AAPL_56fa73e1",
+        "updates": [
+          "last_run",
+          "execution_count"
+        ],
+        "timestamp": "2025-08-26T23:09:54.939797"
+      }
+    },
+    {
+      "event_type": "scheduled_tasks_loaded",
+      "timestamp": "2025-08-26T23:09:54.945434",
+      "data": {
+        "task_count": 2,
+        "timestamp": "2025-08-26T23:09:54.945423"
+      }
+    }
+  ]
+}

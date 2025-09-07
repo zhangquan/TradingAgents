@@ -1,8 +1,9 @@
 import time
 import json
+from tradingagents.agents.utils.language_utils import get_language_instruction
 
 
-def create_risk_manager(llm, memory):
+def create_risk_manager(llm, memory, config=None):
     def risk_manager_node(state) -> dict:
 
         company_name = state["company_of_interest"]
@@ -21,6 +22,10 @@ def create_risk_manager(llm, memory):
         past_memory_str = ""
         for i, rec in enumerate(past_memories, 1):
             past_memory_str += rec["recommendation"] + "\n\n"
+        
+        # Get language configuration
+        report_language = config.get("report_language", "en-US") if config else "en-US"
+        language_instruction = get_language_instruction(report_language)
 
         prompt = f"""As the Risk Management Judge and Debate Facilitator, your goal is to evaluate the debate between three risk analysts—Risky, Neutral, and Safe/Conservative—and determine the best course of action for the trader. Your decision must result in a clear recommendation: Buy, Sell, or Hold. Choose Hold only if strongly justified by specific arguments, not as a fallback when all sides seem valid. Strive for clarity and decisiveness.
 
@@ -41,7 +46,7 @@ Deliverables:
 
 ---
 
-Focus on actionable insights and continuous improvement. Build on past lessons, critically evaluate all perspectives, and ensure each decision advances better outcomes."""
+Focus on actionable insights and continuous improvement. Build on past lessons, critically evaluate all perspectives, and ensure each decision advances better outcomes. {language_instruction}"""
 
         response = llm.invoke(prompt)
 
@@ -64,3 +69,5 @@ Focus on actionable insights and continuous improvement. Build on past lessons, 
         }
 
     return risk_manager_node
+
+

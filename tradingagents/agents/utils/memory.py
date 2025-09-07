@@ -17,7 +17,25 @@ class FinancialSituationMemory:
         else:
             self.client = OpenAI(base_url=config["backend_url"])
         self.chroma_client = chromadb.Client(Settings(allow_reset=True))
-        self.situation_collection = self.chroma_client.create_collection(name=name)
+        
+        # Create unique collection name using instance_id if available
+        instance_id = config.get("instance_id", "default")
+        collection_name = f"{name}_{instance_id}"
+        
+        # Try to get existing collection first, create if not exists
+        try:
+            self.situation_collection = self.chroma_client.get_collection(name=collection_name)
+        except (ValueError, Exception) as e:
+            # Collection doesn't exist or other error, create it
+            try:
+                self.situation_collection = self.chroma_client.create_collection(name=collection_name)
+            except Exception as create_error:
+                # If creation also fails, reset and try again
+                try:
+                    self.chroma_client.reset()
+                    self.situation_collection = self.chroma_client.create_collection(name=collection_name)
+                except Exception as final_error:
+                    raise Exception(f"Failed to create or access collection {collection_name}: {final_error}")
 
     def get_embedding(self, text):
         """Get OpenAI embedding for a text"""
@@ -29,48 +47,55 @@ class FinancialSituationMemory:
 
     def add_situations(self, situations_and_advice):
         """Add financial situations and their corresponding advice. Parameter is a list of tuples (situation, rec)"""
+        try:
+            situations = []
+            advice = []
+            ids = []
+            embeddings = []
 
-        situations = []
-        advice = []
-        ids = []
-        embeddings = []
+            offset = self.situation_collection.count()
 
-        offset = self.situation_collection.count()
+            for i, (situation, recommendation) in enumerate(situations_and_advice):
+                situations.append(situation)
+                advice.append(recommendation)
+                ids.append(str(offset + i))
+                embeddings.append(self.get_embedding(situation))
 
-        for i, (situation, recommendation) in enumerate(situations_and_advice):
-            situations.append(situation)
-            advice.append(recommendation)
-            ids.append(str(offset + i))
-            embeddings.append(self.get_embedding(situation))
-
-        self.situation_collection.add(
-            documents=situations,
-            metadatas=[{"recommendation": rec} for rec in advice],
-            embeddings=embeddings,
-            ids=ids,
-        )
+            self.situation_collection.add(
+                documents=situations,
+                metadatas=[{"recommendation": rec} for rec in advice],
+                embeddings=embeddings,
+                ids=ids,
+            )
+        except Exception as e:
+            raise Exception(f"Failed to add situations to memory collection: {e}")
 
     def get_memories(self, current_situation, n_matches=1):
         """Find matching recommendations using OpenAI embeddings"""
-        query_embedding = self.get_embedding(current_situation)
+        try:
+            query_embedding = self.get_embedding(current_situation)
 
-        results = self.situation_collection.query(
-            query_embeddings=[query_embedding],
-            n_results=n_matches,
-            include=["metadatas", "documents", "distances"],
-        )
-
-        matched_results = []
-        for i in range(len(results["documents"][0])):
-            matched_results.append(
-                {
-                    "matched_situation": results["documents"][0][i],
-                    "recommendation": results["metadatas"][0][i]["recommendation"],
-                    "similarity_score": 1 - results["distances"][0][i],
-                }
+            results = self.situation_collection.query(
+                query_embeddings=[query_embedding],
+                n_results=n_matches,
+                include=["metadatas", "documents", "distances"],
             )
 
-        return matched_results
+            matched_results = []
+            for i in range(len(results["documents"][0])):
+                matched_results.append(
+                    {
+                        "matched_situation": results["documents"][0][i],
+                        "recommendation": results["metadatas"][0][i]["recommendation"],
+                        "similarity_score": 1 - results["distances"][0][i],
+                    }
+                )
+
+            return matched_results
+        except Exception as e:
+            # Return empty results if query fails
+            print(f"Warning: Failed to query memory collection: {e}")
+            return []
 
 
 if __name__ == "__main__":

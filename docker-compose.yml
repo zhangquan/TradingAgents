@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  # Backend API service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - HOST=0.0.0.0
+    volumes:
+      - ./results:/app/results
+      - ./backend:/app
+    networks:
+      - tradingagents
+    restart: unless-stopped
+
+  # Frontend web application
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+    depends_on:
+      - backend
+    networks:
+      - tradingagents
+    restart: unless-stopped
+
+networks:
+  tradingagents:
+    driver: bridge
+
+volumes:
+  results_data:

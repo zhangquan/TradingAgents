@@ -101,14 +101,14 @@ class GraphSetup:
         research_manager_node = create_research_manager(
             self.deep_thinking_llm, self.invest_judge_memory
         )
-        trader_node = create_trader(self.quick_thinking_llm, self.trader_memory)
+        trader_node = create_trader(self.quick_thinking_llm, self.trader_memory, self.toolkit.config)
 
         # Create risk analysis nodes
-        risky_analyst = create_risky_debator(self.quick_thinking_llm)
-        neutral_analyst = create_neutral_debator(self.quick_thinking_llm)
-        safe_analyst = create_safe_debator(self.quick_thinking_llm)
+        risky_analyst = create_risky_debator(self.quick_thinking_llm, self.toolkit.config)
+        neutral_analyst = create_neutral_debator(self.quick_thinking_llm, self.toolkit.config)
+        safe_analyst = create_safe_debator(self.quick_thinking_llm, self.toolkit.config)
         risk_manager_node = create_risk_manager(
-            self.deep_thinking_llm, self.risk_manager_memory
+            self.deep_thinking_llm, self.risk_manager_memory, self.toolkit.config
         )
 
         # Create workflow

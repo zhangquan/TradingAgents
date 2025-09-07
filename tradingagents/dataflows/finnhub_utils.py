@@ -1,5 +1,30 @@
 import json
 import os
+from datetime import datetime, timedelta
+
+
+def get_finnhub_news_for_stock(symbol):
+    """
+    Wrapper function to get Finnhub news for a stock symbol.
+    This function provides compatibility with the backend data services.
+    
+    Args:
+        symbol (str): Stock symbol to get news for
+        
+    Returns:
+        str: Formatted news data
+    """
+    try:
+        # Import here to avoid circular imports
+        from .interface import get_finnhub_news
+        
+        # Get current date and look back 7 days
+        curr_date = datetime.now().strftime("%Y-%m-%d")
+        look_back_days = 7
+        
+        return get_finnhub_news(symbol, curr_date, look_back_days)
+    except Exception as e:
+        return f"Error fetching Finnhub news for {symbol}: {str(e)}"
 
 
 def get_data_in_range(ticker, start_date, end_date, data_type, data_dir, period=None):

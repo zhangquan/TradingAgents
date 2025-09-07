@@ -115,3 +115,39 @@ class YFinanceUtils:
         majority_voting_result = row_0[row_0 == max_votes].index.tolist()
 
         return majority_voting_result[0], max_votes
+
+
+def get_yfinance_data(symbol, days_back=5):
+    """
+    Get Yahoo Finance data for a symbol going back a specified number of days.
+    Returns CSV-formatted string data.
+    
+    Args:
+        symbol (str): Stock symbol to get data for
+        days_back (int): Number of days to look back from today
+        
+    Returns:
+        str: CSV-formatted price data or error message
+    """
+    try:
+        import yfinance as yf
+        from datetime import datetime, timedelta
+        
+        # Calculate date range
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=days_back)
+        
+        # Get ticker data
+        ticker = yf.Ticker(symbol.upper())
+        data = ticker.history(start=start_date.strftime("%Y-%m-%d"), 
+                             end=end_date.strftime("%Y-%m-%d"))
+        
+        if data.empty:
+            return f"Error: No data found for symbol {symbol}"
+        
+        # Convert to CSV string format
+        csv_data = data.to_csv()
+        return csv_data
+        
+    except Exception as e:
+        return f"Error fetching Yahoo Finance data for {symbol}: {str(e)}"

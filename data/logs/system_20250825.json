@@ -1,0 +1,223 @@
+{
+  "events": [
+    {
+      "event_type": "task_created",
+      "timestamp": "2025-08-25T20:27:46.448660",
+      "data": {
+        "task_id": "task_20250825_202746_TSLA_0ba27f0e",
+        "ticker": "TSLA",
+        "analysts": [
+          "market"
+        ]
+      }
+    },
+    {
+      "event_type": "analysis_started",
+      "timestamp": "2025-08-25T20:28:03.574263",
+      "data": {
+        "task_id": "task_20250825_202746_TSLA_0ba27f0e",
+        "ticker": "TSLA",
+        "analysts": [
+          "market"
+        ]
+      }
+    },
+    {
+      "event_type": "analysis_completed",
+      "timestamp": "2025-08-25T20:34:57.884351",
+      "data": {
+        "task_id": "task_20250825_202746_TSLA_0ba27f0e",
+        "analysis_id": "analysis_TSLA_20250825_203457",
+        "ticker": "TSLA",
+        "status": "completed"
+      }
+    },
+    {
+      "event_type": "task_created",
+      "timestamp": "2025-08-25T20:36:01.523239",
+      "data": {
+        "task_id": "task_20250825_203601_TSLA_bfacfa63",
+        "ticker": "TSLA",
+        "analysts": [
+          "market"
+        ]
+      }
+    },
+    {
+      "event_type": "analysis_started",
+      "timestamp": "2025-08-25T20:36:41.535726",
+      "data": {
+        "task_id": "task_20250825_203601_TSLA_bfacfa63",
+        "ticker": "TSLA",
+        "analysts": [
+          "market"
+        ]
+      }
+    },
+    {
+      "event_type": "analysis_completed",
+      "timestamp": "2025-08-25T20:45:09.182065",
+      "data": {
+        "task_id": "task_20250825_203601_TSLA_bfacfa63",
+        "analysis_id": "analysis_TSLA_20250825_204509",
+        "ticker": "TSLA",
+        "status": "completed"
+      }
+    },
+    {
+      "event_type": "task_created",
+      "timestamp": "2025-08-25T20:45:19.117802",
+      "data": {
+        "task_id": "task_20250825_204519_AAPL_67118e13",
+        "ticker": "AAPL",
+        "analysts": [
+          "market"
+        ]
+      }
+    },
+    {
+      "event_type": "analysis_started",
+      "timestamp": "2025-08-25T20:45:28.768602",
+      "data": {
+        "task_id": "task_20250825_204519_AAPL_67118e13",
+        "ticker": "AAPL",
+        "analysts": [
+          "market"
+        ]
+      }
+    },
+    {
+      "event_type": "analysis_completed",
+      "timestamp": "2025-08-25T20:53:47.605255",
+      "data": {
+        "task_id": "task_20250825_204519_AAPL_67118e13",
+        "analysis_id": "analysis_AAPL_20250825_205347",
+        "ticker": "AAPL",
+        "status": "completed"
+      }
+    },
+    {
+      "event_type": "server_startup",
+      "timestamp": "2025-08-25T21:15:56.900536",
+      "data": {
+        "timestamp": "2025-08-25T21:15:56.900525",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "event_type": "watchlist_add",
+      "timestamp": "2025-08-25T21:16:25.447416",
+      "data": {
+        "user_id": "demo_user",
+        "symbol": "MSFT",
+        "watchlist_size": 3
+      }
+    },
+    {
+      "event_type": "watchlist_remove",
+      "timestamp": "2025-08-25T21:16:41.653414",
+      "data": {
+        "user_id": "demo_user",
+        "symbol": "MSFT",
+        "watchlist_size": 2
+      }
+    },
+    {
+      "event_type": "task_created",
+      "timestamp": "2025-08-25T21:32:27.541674",
+      "data": {
+        "task_id": "task_20250825_213227_TSLA_a6c0ba2d",
+        "ticker": "TSLA",
+        "analysts": [
+          "market"
+        ]
+      }
+    },
+    {
+      "event_type": "server_startup",
+      "timestamp": "2025-08-25T22:10:57.052992",
+      "data": {
+        "timestamp": "2025-08-25T22:10:57.052981",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "event_type": "server_startup",
+      "timestamp": "2025-08-25T22:19:40.388078",
+      "data": {
+        "timestamp": "2025-08-25T22:19:40.388060",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "event_type": "server_startup",
+      "timestamp": "2025-08-25T22:19:52.001692",
+      "data": {
+        "timestamp": "2025-08-25T22:19:52.001682",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "event_type": "server_startup",
+      "timestamp": "2025-08-25T22:20:02.995008",
+      "data": {
+        "timestamp": "2025-08-25T22:20:02.994996",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "event_type": "server_startup",
+      "timestamp": "2025-08-25T22:20:13.355387",
+      "data": {
+        "timestamp": "2025-08-25T22:20:13.355376",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "event_type": "server_startup",
+      "timestamp": "2025-08-25T22:20:47.218999",
+      "data": {
+        "timestamp": "2025-08-25T22:20:47.218988",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "event_type": "server_startup",
+      "timestamp": "2025-08-25T22:20:55.372901",
+      "data": {
+        "timestamp": "2025-08-25T22:20:55.372891",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "event_type": "task_created",
+      "timestamp": "2025-08-25T22:38:54.242063",
+      "data": {
+        "task_id": "task_20250825_223854_TSLA_480624dd",
+        "ticker": "TSLA",
+        "analysts": [
+          "market"
+        ]
+      }
+    },
+    {
+      "event_type": "task_created",
+      "timestamp": "2025-08-25T22:40:09.938804",
+      "data": {
+        "task_id": "task_20250825_224009_TSLA_dd1eff28",
+        "ticker": "TSLA",
+        "analysts": [
+          "market"
+        ]
+      }
+    },
+    {
+      "event_type": "server_startup",
+      "timestamp": "2025-08-25T22:47:35.576565",
+      "data": {
+        "timestamp": "2025-08-25T22:47:35.576537",
+        "version": "1.0.0"
+      }
+    }
+  ]
+}

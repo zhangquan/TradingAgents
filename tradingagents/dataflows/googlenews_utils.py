@@ -1,7 +1,7 @@
 import json
 import requests
 from bs4 import BeautifulSoup
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
 import random
 from tenacity import (
@@ -106,3 +106,44 @@ def getNewsData(query, start_date, end_date):
             break
 
     return news_results
+
+
+def get_google_news_for_stock(symbol):
+    """
+    Wrapper function to get Google news for a stock symbol.
+    This function provides compatibility with the backend data services.
+    
+    Args:
+        symbol (str): Stock symbol to get news for
+        
+    Returns:
+        str: Formatted news data
+    """
+    try:
+        # Get current date and look back 7 days
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=7)
+        
+        end_date_str = end_date.strftime("%Y-%m-%d")
+        start_date_str = start_date.strftime("%Y-%m-%d")
+        
+        # Search for stock news
+        query = f"{symbol} stock"
+        news_results = getNewsData(query, start_date_str, end_date_str)
+        
+        if not news_results:
+            return f"No Google news found for {symbol}"
+        
+        # Format the results
+        formatted_news = f"## Google News for {symbol} from {start_date_str} to {end_date_str}:\n\n"
+        for news in news_results[:10]:  # Limit to 10 articles
+            formatted_news += f"Title: {news.get('title', 'N/A')}\n"
+            formatted_news += f"URL: {news.get('link', 'N/A')}\n"
+            formatted_news += f"Published: {news.get('date', 'N/A')}\n"
+            formatted_news += f"Summary: {news.get('snippet', 'N/A')}\n"
+            formatted_news += f"Source: {news.get('source', 'N/A')}\n\n"
+        
+        return formatted_news
+        
+    except Exception as e:
+        return f"Error fetching Google news for {symbol}: {str(e)}"

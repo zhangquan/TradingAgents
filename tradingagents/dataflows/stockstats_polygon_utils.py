@@ -18,7 +18,9 @@ class StockstatsPolygonUtils:
         curr_date: Annotated[
             str, "curr date for retrieving stock price data, YYYY-mm-dd"
         ],
-        look_back_days: Annotated[int, "number of days to look back for data"]
+        look_back_days: Annotated[int, "number of days to look back for data"],
+        extend_cache: Annotated[bool, "whether to extend the cache"] = True,
+        
     ):
         """
         Get stock statistics for a window of days instead of just a single date.
@@ -35,7 +37,7 @@ class StockstatsPolygonUtils:
             symbol=symbol,
             curr_date=curr_date,
             look_back_days=look_back_days + 90,  # Extra buffer for technical indicators
-            extend_cache=True,  # Extend cache with additional historical data
+            extend_cache=extend_cache,  # Extend cache with additional historical data
             max_cache_age_days=365  # Cache is valid for 7 days
         )
         

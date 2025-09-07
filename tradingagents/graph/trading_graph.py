@@ -129,8 +129,7 @@ class TradingAgentsGraph:
                     # offline tools
                     # self.toolkit.get_YFin_data,
                     # self.toolkit.get_stockstats_indicators_report,
-                    # self.polygon_toolkit.get_polygon_data_window,
-                    # self.polygon_toolkit.get_stockstats_indicators_report,
+                   
                 ]
             ),
             "social": ToolNode(

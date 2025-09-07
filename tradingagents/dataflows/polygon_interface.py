@@ -28,11 +28,11 @@ def get_polygon_data_window(
         
         start_date = start_dt.strftime("%Y-%m-%d")
         end_date = curr_date
-        polygon_utils = PolygonUtils()
+        polygon_utils = PolygonUtils(require_api_key=False)
         data = polygon_utils.get_stock_data_cached(symbol, start_date, end_date)
         
         if data.empty:
-            return f"No data found for symbol '{symbol}' for {look_back_days} days back from {curr_date}"
+            return f"No data found for symbol '{symbol}' for {look_back_days} days back from {curr_date}. This could be due to API limitations or no cached data available."
         
         # Reset index to make Date a column and format the output
         formatted_data = data.reset_index()
@@ -41,17 +41,26 @@ def get_polygon_data_window(
         csv_string = formatted_data.to_csv(index=False)
         
         # Calculate start date for header
+        actual_start_date = formatted_data['Date'].min() if not formatted_data.empty else start_date
+        actual_end_date = formatted_data['Date'].max() if not formatted_data.empty else end_date
         
-        # Add header information
-        header = f"# Stock data for {symbol.upper()} from {start_date} to {end_date} ({look_back_days} days)\n"
+        # Add header information with note about potential fallback data
+        header = f"# Stock data for {symbol.upper()} from {actual_start_date} to {actual_end_date}\n"
+        header += f"# Requested: {look_back_days} days back from {curr_date} (from {start_date} to {end_date})\n"
         header += f"# Total records: {len(formatted_data)}\n"
         header += f"# Data retrieved on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
-        header += f"# Data source: Polygon.io (cached)\n\n"
+        header += f"# Data source: Polygon.io (cached with fallback support)\n"
+        
+        # Check if we got the exact range requested
+        if actual_start_date != start_date or actual_end_date != end_date:
+            header += f"# Note: Using available cached data. Requested range: {start_date} to {end_date}\n"
+        
+        header += "\n"
         
         return header + csv_string
         
     except Exception as e:
-        return f"Error retrieving data for {symbol}: {str(e)}"
+        return f"Error retrieving data for {symbol}: {str(e)}. Note: This might be due to API authorization issues. Check if cached data is available for this symbol."
 
 
 def get_polygon_company_info(

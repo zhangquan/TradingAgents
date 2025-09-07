@@ -1,0 +1,216 @@
+{
+  "events": [
+    {
+      "event_type": "server_startup",
+      "timestamp": "2025-08-23T19:37:47.682522",
+      "data": {
+        "timestamp": "2025-08-23T19:37:47.682511",
+        "version": "2.0.0",
+        "architecture": "modular"
+      }
+    },
+    {
+      "event_type": "server_shutdown",
+      "timestamp": "2025-08-23T19:38:24.479471",
+      "data": {
+        "timestamp": "2025-08-23T19:38:24.479458",
+        "version": "2.0.0"
+      }
+    },
+    {
+      "event_type": "server_startup",
+      "timestamp": "2025-08-23T19:39:25.414563",
+      "data": {
+        "timestamp": "2025-08-23T19:39:25.414552",
+        "version": "2.0.0",
+        "architecture": "modular"
+      }
+    },
+    {
+      "event_type": "server_shutdown",
+      "timestamp": "2025-08-23T19:39:29.845583",
+      "data": {
+        "timestamp": "2025-08-23T19:39:29.845566",
+        "version": "2.0.0"
+      }
+    },
+    {
+      "event_type": "server_startup",
+      "timestamp": "2025-08-23T19:39:33.058809",
+      "data": {
+        "timestamp": "2025-08-23T19:39:33.058799",
+        "version": "2.0.0",
+        "architecture": "modular"
+      }
+    },
+    {
+      "event_type": "server_startup",
+      "timestamp": "2025-08-23T19:39:36.780042",
+      "data": {
+        "timestamp": "2025-08-23T19:39:36.780030",
+        "version": "2.0.0",
+        "architecture": "modular"
+      }
+    },
+    {
+      "event_type": "server_shutdown",
+      "timestamp": "2025-08-23T19:40:22.980583",
+      "data": {
+        "timestamp": "2025-08-23T19:40:22.980549",
+        "version": "2.0.0"
+      }
+    },
+    {
+      "event_type": "server_startup",
+      "timestamp": "2025-08-23T19:40:27.569922",
+      "data": {
+        "timestamp": "2025-08-23T19:40:27.569912",
+        "version": "2.0.0",
+        "architecture": "modular"
+      }
+    },
+    {
+      "event_type": "server_shutdown",
+      "timestamp": "2025-08-23T19:41:27.454455",
+      "data": {
+        "timestamp": "2025-08-23T19:41:27.454439",
+        "version": "2.0.0"
+      }
+    },
+    {
+      "event_type": "server_startup",
+      "timestamp": "2025-08-23T19:41:32.349239",
+      "data": {
+        "timestamp": "2025-08-23T19:41:32.349227",
+        "version": "2.0.0",
+        "architecture": "modular"
+      }
+    },
+    {
+      "event_type": "server_shutdown",
+      "timestamp": "2025-08-23T19:43:01.657053",
+      "data": {
+        "timestamp": "2025-08-23T19:43:01.657037",
+        "version": "2.0.0"
+      }
+    },
+    {
+      "event_type": "server_startup",
+      "timestamp": "2025-08-23T19:43:06.015978",
+      "data": {
+        "timestamp": "2025-08-23T19:43:06.015965",
+        "version": "2.0.0",
+        "architecture": "modular"
+      }
+    },
+    {
+      "event_type": "server_shutdown",
+      "timestamp": "2025-08-23T19:49:34.885156",
+      "data": {
+        "timestamp": "2025-08-23T19:49:34.885143",
+        "version": "2.0.0"
+      }
+    },
+    {
+      "event_type": "server_startup",
+      "timestamp": "2025-08-23T19:55:32.095083",
+      "data": {
+        "timestamp": "2025-08-23T19:55:32.095072",
+        "version": "2.0.0",
+        "architecture": "modular"
+      }
+    },
+    {
+      "event_type": "server_shutdown",
+      "timestamp": "2025-08-23T19:55:51.618020",
+      "data": {
+        "timestamp": "2025-08-23T19:55:51.617991",
+        "version": "2.0.0"
+      }
+    },
+    {
+      "event_type": "server_startup",
+      "timestamp": "2025-08-23T19:55:58.526598",
+      "data": {
+        "timestamp": "2025-08-23T19:55:58.526586",
+        "version": "2.0.0",
+        "architecture": "modular"
+      }
+    },
+    {
+      "event_type": "server_shutdown",
+      "timestamp": "2025-08-23T19:56:36.639636",
+      "data": {
+        "timestamp": "2025-08-23T19:56:36.639619",
+        "version": "2.0.0"
+      }
+    },
+    {
+      "event_type": "analysis_started",
+      "timestamp": "2025-08-23T20:02:39.659118",
+      "data": {
+        "task_id": "task_20250823_200239_TSLA_36ff4323",
+        "user_id": "demo_user",
+        "ticker": "TSLA",
+        "analysts": [
+          "market"
+        ]
+      }
+    },
+    {
+      "event_type": "analysis_started",
+      "timestamp": "2025-08-23T21:51:50.883033",
+      "data": {
+        "task_id": "task_20250823_215150_TSLA_82a004e6",
+        "ticker": "TSLA",
+        "analysts": [
+          "market"
+        ]
+      }
+    },
+    {
+      "event_type": "analysis_started",
+      "timestamp": "2025-08-23T21:58:29.763623",
+      "data": {
+        "task_id": "task_20250823_215829_TSLA_e84d7a3d",
+        "ticker": "TSLA",
+        "analysts": [
+          "market"
+        ]
+      }
+    },
+    {
+      "event_type": "analysis_started",
+      "timestamp": "2025-08-23T21:58:53.528791",
+      "data": {
+        "task_id": "task_20250823_215853_TSLA_3f194eb6",
+        "ticker": "TSLA",
+        "analysts": [
+          "market"
+        ]
+      }
+    },
+    {
+      "event_type": "analysis_started",
+      "timestamp": "2025-08-23T22:05:03.045655",
+      "data": {
+        "task_id": "task_20250823_220503_TSLA_b93df86e",
+        "ticker": "TSLA",
+        "analysts": [
+          "market"
+        ]
+      }
+    },
+    {
+      "event_type": "analysis_started",
+      "timestamp": "2025-08-23T22:50:06.361645",
+      "data": {
+        "task_id": "task_20250823_225006_TSLA_91791a4e",
+        "ticker": "TSLA",
+        "analysts": [
+          "market"
+        ]
+      }
+    }
+  ]
+}

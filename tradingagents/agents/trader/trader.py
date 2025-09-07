@@ -1,9 +1,10 @@
 import functools
 import time
 import json
+from tradingagents.agents.utils.language_utils import get_language_instruction
 
 
-def create_trader(llm, memory):
+def create_trader(llm, memory, config=None):
     def trader_node(state, name):
         company_name = state["company_of_interest"]
         investment_plan = state["investment_plan"]
@@ -14,6 +15,10 @@ def create_trader(llm, memory):
 
         curr_situation = f"{market_research_report}\n\n{sentiment_report}\n\n{news_report}\n\n{fundamentals_report}"
         past_memories = memory.get_memories(curr_situation, n_matches=2)
+        
+        # Get language configuration
+        report_language = config.get("report_language", "en-US") if config else "en-US"
+        language_instruction = get_language_instruction(report_language)
 
         past_memory_str = ""
         if past_memories:
@@ -30,7 +35,7 @@ def create_trader(llm, memory):
         messages = [
             {
                 "role": "system",
-                "content": f"""You are a trading agent analyzing market data to make investment decisions. Based on your analysis, provide a specific recommendation to buy, sell, or hold. End with a firm decision and always conclude your response with 'FINAL TRANSACTION PROPOSAL: **BUY/HOLD/SELL**' to confirm your recommendation. Do not forget to utilize lessons from past decisions to learn from your mistakes. Here is some reflections from similar situatiosn you traded in and the lessons learned: {past_memory_str}""",
+                "content": f"""You are a trading agent analyzing market data to make investment decisions. Based on your analysis, provide a specific recommendation to buy, sell, or hold. End with a firm decision and always conclude your response with 'FINAL TRANSACTION PROPOSAL: **BUY/HOLD/SELL**' to confirm your recommendation. Do not forget to utilize lessons from past decisions to learn from your mistakes. Here is some reflections from similar situatiosn you traded in and the lessons learned: {past_memory_str} {language_instruction}""",
             },
             context,
         ]
@@ -44,3 +49,5 @@ def create_trader(llm, memory):
         }
 
     return functools.partial(trader_node, name="Trader")
+
+

@@ -14,18 +14,27 @@ logger = logging.getLogger(__name__)
 class PolygonUtils:
     """Utility class for Polygon.io API operations"""
     
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: Optional[str] = None, require_api_key: bool = True):
         """
         Initialize Polygon.io client
         
         Args:
             api_key (str): Polygon.io API key. If not provided, will try to get from environment variable POLYGON_API_KEY
+            require_api_key (bool): Whether to require API key. If False, only cached operations will be available.
         """
         self.api_key = api_key or os.getenv("POLYGON_API_KEY")
-        if not self.api_key:
+        self.client = None
+        
+        if require_api_key and not self.api_key:
             raise ValueError("Polygon.io API key is required. Set POLYGON_API_KEY environment variable or pass api_key parameter.")
         
-        self.client = RESTClient(self.api_key)
+        if self.api_key:
+            try:
+                self.client = RESTClient(self.api_key)
+            except Exception as e:
+                logger.warning(f"Failed to initialize Polygon client: {e}")
+                if require_api_key:
+                    raise
     
     def get_stock_data_online(
         self,
@@ -44,10 +53,17 @@ class PolygonUtils:
         Returns:
             pd.DataFrame: Stock price data with columns: Open, High, Low, Close, Volume, VWAP, Transactions
         """
+        if not self.client:
+            raise ValueError("Polygon client not initialized. API key may be missing or invalid.")
+        
         try:
             # Convert dates to datetime objects
             start_dt = datetime.strptime(start_date, "%Y-%m-%d")
             end_dt = datetime.strptime(end_date, "%Y-%m-%d")
+            
+            # Validate date range
+            if start_dt > end_dt:
+                raise ValueError(f"Start date ({start_date}) cannot be after end date ({end_date})")
             
             # Get daily aggregates
             aggs = []
@@ -115,7 +131,11 @@ class PolygonUtils:
         start_date = start_dt.strftime("%Y-%m-%d")
         end_date = curr_date
         
-        return self.get_stock_data(symbol, start_date, end_date)
+        # Validate the calculated date range
+        if start_dt > curr_dt:
+            raise ValueError(f"Invalid look_back_days ({look_back_days}): results in start date after current date")
+        
+        return self.get_stock_data_online(symbol, start_date, end_date)
     def get_stock_data_cached(
         self,
         symbol: Annotated[str, "ticker symbol"],
@@ -131,19 +151,22 @@ class PolygonUtils:
             symbol (str): Stock ticker symbol (e.g., 'AAPL', 'TSLA')
             start_date (str): Start date in YYYY-mm-dd format
             end_date (str): End date in YYYY-mm-dd format
-            extend_cache (bool): Whether to extend cache with additional historical data
+            extend_cache (bool): Whether to extend cache with additional historical data. When False, only uses existing cache.
             max_cache_age_days (int): Maximum age of cached data in days
             
         Returns:
             pd.DataFrame: Stock price data with columns: Open, High, Low, Close, Volume, VWAP, Transactions
         """
         try:
-            cache_file_path = self._get_cache_file_path(symbol)
-            cached_data = self._load_cached_data(cache_file_path)
-            
-            # Calculate required date range
+            # Validate input dates first
             requested_start_dt = datetime.strptime(start_date, "%Y-%m-%d")
             requested_end_dt = datetime.strptime(end_date, "%Y-%m-%d")
+            
+            if requested_start_dt > requested_end_dt:
+                raise ValueError(f"Start date ({start_date}) cannot be after end date ({end_date})")
+            
+            cache_file_path = self._get_cache_file_path(symbol)
+            cached_data = self._load_cached_data(cache_file_path)
             
             # Determine what data we need to fetch (avoid loading existing data)
             fetch_ranges = []
@@ -154,10 +177,16 @@ class PolygonUtils:
                 if extend_cache:
                     # Extend the date range to cache more data for future requests
                     extended_start = requested_start_dt - timedelta(days=365)  # Get 1 year of historical data
-                    extended_end = datetime.now()  # Get up to current date
-                    fetch_ranges.append((extended_start, extended_end))
+                    # Polygon API doesn't support current day data, use previous day as max
+                    extended_end = datetime.now() - timedelta(days=1)  # Get up to previous day
+                    # Don't fetch if end date is before start date
+                    if extended_end >= extended_start:
+                        fetch_ranges.append((extended_start, extended_end))
                 else:
-                    fetch_ranges.append((requested_start_dt, requested_end_dt))
+                    # For non-extended cache, also ensure we don't request current day
+                    safe_end_dt = min(requested_end_dt, datetime.now() - timedelta(days=1))
+                    if safe_end_dt >= requested_start_dt:
+                        fetch_ranges.append((requested_start_dt, safe_end_dt))
                 logger.info(f"No cache found for {symbol}, will fetch new data")
             else:
                 cached_start = cached_data.index.min()
@@ -169,9 +198,7 @@ class PolygonUtils:
                 if cache_valid:
                     logger.info(f"Using cached data for {symbol}")
                 else:
-                    # Determine missing ranges
-                    logger.info(f"Cache partially covers the range or is stale for {symbol}, fetching missing data")
-                    
+                 
                     # Calculate what ranges we need to fetch
                     target_start = requested_start_dt
                     target_end = requested_end_dt
@@ -179,45 +206,74 @@ class PolygonUtils:
                     if extend_cache:
                         # Extend range for better future coverage
                         target_start = min(requested_start_dt, requested_start_dt - timedelta(days=365))
-                        target_end = max(requested_end_dt, datetime.now())
+                        # Polygon API doesn't support current day data, use previous day as max
+                        target_end = max(requested_end_dt, datetime.now() - timedelta(days=1))
                     
                     # Add ranges that are missing from cache
                     if target_start < cached_start:
                         # Need data before cached range
-                        fetch_ranges.append((target_start, cached_start - timedelta(days=1)))
+                        before_end = cached_start - timedelta(days=1)
+                        if target_start <= before_end:  # Ensure valid date range
+                            fetch_ranges.append((target_start, before_end))
                     
                     if target_end > cached_end:
                         # Need data after cached range
-                        fetch_ranges.append((cached_end + timedelta(days=1), target_end))
+                        # Ensure we don't request current day data
+                        safe_target_end = min(target_end, datetime.now() - timedelta(days=1))
+                        after_start = cached_end + timedelta(days=1)
+                        if after_start <= safe_target_end:  # Ensure valid date range
+                            fetch_ranges.append((after_start, safe_target_end))
                     
                     # Check if cached data is too old (need to refresh recent data)
                     if (datetime.now() - cached_end).days > max_cache_age_days:
                         # Refresh the last few days
                         refresh_start = max(cached_end - timedelta(days=max_cache_age_days), cached_start)
-                        refresh_end = datetime.now()
-                        fetch_ranges.append((refresh_start, refresh_end))
+                        # Polygon API doesn't support current day data, use previous day as max
+                        refresh_end = datetime.now() - timedelta(days=1)
+                        if refresh_end > refresh_start:
+                            fetch_ranges.append((refresh_start, refresh_end))
             
-            # Fetch missing data ranges
-            for fetch_start, fetch_end in fetch_ranges:
-                fetch_start_str = fetch_start.strftime("%Y-%m-%d")
-                fetch_end_str = fetch_end.strftime("%Y-%m-%d")
-                
-                logger.info(f"Fetching data for {symbol} from {fetch_start_str} to {fetch_end_str}")
-                api_data = self.get_stock_data_online(symbol, fetch_start_str, fetch_end_str)
-                
-                if not api_data.empty:
-                    if final_data.empty:
-                        final_data = api_data
-                    else:
-                        # Merge new data with existing cache, removing duplicates
-                        combined_data = pd.concat([final_data, api_data])
-                        # Remove duplicates by keeping the latest version
-                        final_data = combined_data[~combined_data.index.duplicated(keep='last')].sort_index()
-                else:
-                    logger.warning(f"No data returned for {symbol} from {fetch_start_str} to {fetch_end_str}")
+            # Fetch missing data ranges (skip if extend_cache is False)
+            api_fetch_success = False
+            if extend_cache:
+                for fetch_start, fetch_end in fetch_ranges:
+                    # Validate date range before API call
+                    if fetch_start > fetch_end:
+                        logger.warning(f"Skipping invalid date range for {symbol}: start ({fetch_start}) > end ({fetch_end})")
+                        continue
+                        
+                    fetch_start_str = fetch_start.strftime("%Y-%m-%d")
+                    fetch_end_str = fetch_end.strftime("%Y-%m-%d")
+                    
+                    logger.info(f"Fetching data for {symbol} from {fetch_start_str} to {fetch_end_str}")
+                    try:
+                        api_data = self.get_stock_data_online(symbol, fetch_start_str, fetch_end_str)
+                        
+                        if not api_data.empty:
+                            if final_data.empty:
+                                final_data = api_data
+                            else:
+                                # Merge new data with existing cache, removing duplicates
+                                combined_data = pd.concat([final_data, api_data])
+                                # Remove duplicates by keeping the latest version
+                                final_data = combined_data[~combined_data.index.duplicated(keep='last')].sort_index()
+                            api_fetch_success = True
+                        else:
+                            logger.warning(f"No data returned for {symbol} from {fetch_start_str} to {fetch_end_str}")
+                            
+                    except Exception as e:
+                        logger.warning(f"Failed to fetch new data for {symbol} from {fetch_start_str} to {fetch_end_str}: {str(e)}")
+                        # If we have cached data, we'll continue using it instead of failing completely
+                        if not final_data.empty:
+                            logger.info(f"Using existing cached data for {symbol} due to API fetch failure")
+                        else:
+                            logger.error(f"No cached data available and API fetch failed for {symbol}")
+            else:
+                # extend_cache=False: use existing cached data only
+                logger.info(f"extend_cache=False for {symbol}, using cached data only")
             
-            # Save updated cache if we fetched any new data
-            if fetch_ranges and not final_data.empty:
+            # Save updated cache if we fetched any new data successfully
+            if api_fetch_success and not final_data.empty:
                 self._save_cached_data(final_data, cache_file_path)
                 logger.info(f"Updated cache for {symbol} with new data")
             
@@ -232,6 +288,10 @@ class PolygonUtils:
             
             if filtered_data.empty:
                 logger.warning(f"No data found for symbol '{symbol}' between {start_date} and {end_date}")
+                # If we have any cached data, try to return the closest available data
+                if not final_data.empty:
+                    logger.info(f"Returning available cached data for {symbol} outside requested range")
+                    return final_data
                 return pd.DataFrame()
             
             return filtered_data
@@ -254,7 +314,7 @@ class PolygonUtils:
             symbol (str): Stock ticker symbol
             curr_date (str): Current date in yyyy-mm-dd format
             look_back_days (int): Number of days to look back
-            extend_cache (bool): Whether to extend cache with additional historical data
+            extend_cache (bool): Whether to extend cache with additional historical data. When False, only uses existing cache.
             max_cache_age_days (int): Maximum age of cached data in days
             
         Returns:
@@ -266,6 +326,10 @@ class PolygonUtils:
         
         start_date = start_dt.strftime("%Y-%m-%d")
         end_date = curr_date
+        
+        # Validate the calculated date range
+        if start_dt > curr_dt:
+            raise ValueError(f"Invalid look_back_days ({look_back_days}): results in start date after current date")
         
         return self.get_stock_data_cached(
             symbol, start_date, end_date, extend_cache, max_cache_age_days
@@ -284,6 +348,19 @@ class PolygonUtils:
         Returns:
             dict: Stock information including company details
         """
+        if not self.client:
+            logger.warning(f"Polygon client not available for stock info request for {symbol}")
+            return {
+                "Company Name": "N/A - API not available",
+                "Industry": "N/A - API not available", 
+                "Sector": "N/A - API not available",
+                "Country": "N/A - API not available",
+                "Website": "N/A - API not available",
+                "Market Cap": "N/A - API not available",
+                "Employees": "N/A - API not available",
+                "Description": "N/A - API not available",
+            }
+        
         try:
             # Get ticker details
             ticker_details = self.client.get_ticker_details(symbol.upper())

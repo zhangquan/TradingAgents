@@ -1,15 +1,23 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 import time
 import json
+from tradingagents.agents.utils.language_utils import get_language_instruction
 
 
-def create_news_analyst(llm, toolkit):
+def create_news_analyst(llm, toolkit, polygon_toolkit):
     def news_analyst_node(state):
         current_date = state["trade_date"]
         ticker = state["company_of_interest"]
+        
+        # Get language configuration
+        report_language = toolkit.config.get("report_language", "en-US")
+        language_instruction = get_language_instruction(report_language)
 
         if toolkit.config["online_tools"]:
-            tools = [toolkit.get_global_news_openai, toolkit.get_google_news]
+            tools = [
+                toolkit.get_global_news_openai, 
+                toolkit.get_google_news, 
+                polygon_toolkit.get_polygon_news]
         else:
             tools = [
                 toolkit.get_finnhub_news,
@@ -20,6 +28,7 @@ def create_news_analyst(llm, toolkit):
         system_message = (
             "You are a news researcher tasked with analyzing recent news and trends over the past week. Please write a comprehensive report of the current state of the world that is relevant for trading and macroeconomics. Look at news from EODHD, and finnhub to be comprehensive. Do not simply state the trends are mixed, provide detailed and finegrained analysis and insights that may help traders make decisions."
             + """ Make sure to append a Makrdown table at the end of the report to organize key points in the report, organized and easy to read."""
+            + f""" {language_instruction}"""
         )
 
         prompt = ChatPromptTemplate.from_messages(
@@ -58,3 +67,5 @@ def create_news_analyst(llm, toolkit):
         }
 
     return news_analyst_node
+
+
