@@ -1,0 +1,95 @@
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started parent process [62091]
+INFO:backend.database.database:Database tables created successfully
+INFO:backend.database.database:Database tables created successfully
+INFO:backend.storage:Database storage initialized successfully
+INFO:backend.database.database:Database tables created successfully
+INFO:backend.storage:Database storage initialized successfully
+INFO:backend.database.database:Database tables created successfully
+INFO:backend.storage:Database storage initialized successfully
+INFO:backend.storage:Database storage initialized successfully
+INFO:backend.services.data_services:PolygonUtils初始化成功，require_api_key=False
+INFO:backend.services.data_services:PolygonUtils初始化成功，require_api_key=False
+INFO:backend.database.database:Database tables created successfully
+INFO:backend.services.data_services:PolygonUtils初始化成功，require_api_key=False
+INFO:backend.storage:Database storage initialized successfully
+INFO:backend.services.data_services:PolygonUtils初始化成功，require_api_key=False
+INFO:backend.database.database:Database tables created successfully
+INFO:backend.storage:Database storage initialized successfully
+INFO:backend.database.database:Database tables created successfully
+INFO:backend.storage:Database storage initialized successfully
+INFO:backend.database.database:Database tables created successfully
+INFO:backend.storage:Database storage initialized successfully
+INFO:     Started server process [62108]
+INFO:     Waiting for application startup.
+INFO:     Started server process [62107]
+INFO:     Waiting for application startup.
+INFO:     Started server process [62106]
+INFO:     Waiting for application startup.
+INFO:     Started server process [62102]
+INFO:     Waiting for application startup.
+INFO:backend.database.storage_service:Cleared 0 expired cache entries
+INFO:backend.database.storage_service:Cleared 0 expired cache entries
+INFO:backend.database.storage_service:Cleared 0 expired cache entries
+INFO:backend.database.storage_service:Cleared 0 expired cache entries
+INFO:apscheduler.scheduler:Scheduler started
+INFO:apscheduler.scheduler:Scheduler started
+INFO:apscheduler.scheduler:Scheduler started
+INFO:apscheduler.scheduler:Scheduler started
+INFO:apscheduler.scheduler:Added job "SchedulerService.execute_scheduled_analysis" to job store "default"
+INFO:apscheduler.scheduler:Added job "SchedulerService.execute_scheduled_analysis" to job store "default"
+INFO:apscheduler.scheduler:Added job "SchedulerService.execute_scheduled_analysis" to job store "default"
+INFO:apscheduler.scheduler:Added job "SchedulerService.execute_scheduled_analysis" to job store "default"
+INFO:backend.services.scheduler_service:Loaded and registered 3 scheduled tasks
+INFO:backend.services.scheduler_service:Scheduler service started
+INFO:backend.main:Application startup completed
+INFO:     Application startup complete.
+INFO:apscheduler.scheduler:Added job "SchedulerService.execute_scheduled_analysis" to job store "default"
+INFO:apscheduler.scheduler:Added job "SchedulerService.execute_scheduled_analysis" to job store "default"
+INFO:apscheduler.scheduler:Added job "SchedulerService.execute_scheduled_analysis" to job store "default"
+INFO:backend.services.scheduler_service:Loaded and registered 3 scheduled tasks
+INFO:apscheduler.scheduler:Added job "SchedulerService.execute_scheduled_analysis" to job store "default"
+INFO:backend.services.scheduler_service:Scheduler service started
+INFO:backend.main:Application startup completed
+INFO:     Application startup complete.
+INFO:apscheduler.scheduler:Added job "SchedulerService.execute_scheduled_analysis" to job store "default"
+INFO:backend.services.scheduler_service:Loaded and registered 3 scheduled tasks
+INFO:backend.services.scheduler_service:Scheduler service started
+INFO:backend.main:Application startup completed
+INFO:     Application startup complete.
+INFO:apscheduler.scheduler:Added job "SchedulerService.execute_scheduled_analysis" to job store "default"
+INFO:apscheduler.scheduler:Added job "SchedulerService.execute_scheduled_analysis" to job store "default"
+INFO:apscheduler.scheduler:Added job "SchedulerService.execute_scheduled_analysis" to job store "default"
+INFO:backend.services.scheduler_service:Loaded and registered 3 scheduled tasks
+INFO:backend.services.scheduler_service:Scheduler service started
+INFO:backend.main:Application startup completed
+INFO:     Application startup complete.
+INFO:     127.0.0.1:53110 - "GET /health HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Shutting down
+INFO:     Shutting down
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Waiting for application shutdown.
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Application shutdown complete.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [62107]
+INFO:     Finished server process [62108]
+INFO:     Finished server process [62102]
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [62106]
+INFO:     Received SIGINT, exiting.
+INFO:     Received SIGINT, exiting.
+INFO:     Received SIGTERM, exiting.
+INFO:     Terminated child process [62102]
+INFO:     Terminated child process [62106]
+INFO:     Terminated child process [62107]
+INFO:     Terminated child process [62108]
+INFO:     Waiting for child process [62102]
+INFO:     Waiting for child process [62106]
+INFO:     Waiting for child process [62107]
+INFO:     Waiting for child process [62108]
+INFO:     Stopping parent process [62091]
