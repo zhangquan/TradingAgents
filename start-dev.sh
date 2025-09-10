@@ -21,11 +21,19 @@ BACKEND_PID=$!
 
 # Wait for backend to start
 echo "⏳ Waiting for backend to initialize..."
-sleep 5
 
-# Check if backend started successfully
+# Wait up to 30 seconds for backend to be ready
+for i in {1..30}; do
+    if curl -s http://localhost:8000/health >/dev/null; then
+        break
+    fi
+    echo "⏳ Backend starting... ($i/30)"
+    sleep 1
+done
+
+# Final check if backend started successfully
 if ! curl -s http://localhost:8000/health >/dev/null; then
-    echo "❌ Backend failed to start. Check the logs above."
+    echo "❌ Backend failed to start after 30 seconds. Check the logs above."
     kill $BACKEND_PID 2>/dev/null
     exit 1
 fi

@@ -109,7 +109,7 @@ class Report(Base):
     
     # Relationships
     analysis = relationship("Analysis", back_populates="reports")
-    user = relationship("User")
+    user = relationship("User", overlaps="reports")
     
     # Indexes for common queries
     __table_args__ = (
