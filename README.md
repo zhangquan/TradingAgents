@@ -93,7 +93,47 @@ Our framework decomposes complex trading tasks into specialized roles. This ensu
 
 ## Installation and CLI
 
-### Installation
+### Quick Deployment with Docker (Recommended)
+
+The fastest way to get TradingAgents up and running is using our unified deployment script:
+
+```bash
+# Clone the repository
+git clone https://github.com/TauricResearch/TradingAgents.git
+cd TradingAgents
+
+# One-command deployment
+./deploy.sh deploy
+```
+
+This will automatically:
+- Check your system environment
+- Build and start all services (Backend API + Frontend Web UI)
+- Set up the database and necessary directories
+- Run health checks
+
+**Access the application:**
+- 🌐 **Web Interface**: http://localhost:3000
+- 🔌 **API**: http://localhost:8000
+- 📚 **API Documentation**: http://localhost:8000/docs
+
+**Other deployment commands:**
+```bash
+./deploy.sh check      # Check system requirements
+./deploy.sh quick      # Quick start (without rebuild)
+./deploy.sh status     # View service status
+./deploy.sh logs       # View application logs
+./deploy.sh stop       # Stop all services
+```
+
+**System Requirements:**
+- Docker 20.10+ and Docker Compose
+- At least 2GB RAM and 5GB disk space
+- Ports 3000, 8000 available
+
+### Manual Installation
+
+For development or customization, you can install manually:
 
 Clone TradingAgents:
 ```bash
@@ -101,10 +141,15 @@ git clone https://github.com/TauricResearch/TradingAgents.git
 cd TradingAgents
 ```
 
-Create a virtual environment in any of your favorite environment managers:
+Create a virtual environment:
 ```bash
+# Using conda (recommended)
 conda create -n tradingagents python=3.13
 conda activate tradingagents
+
+# Or using uv (project default)
+uv sync
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 ```
 
 Install dependencies:
