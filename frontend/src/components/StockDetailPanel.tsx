@@ -1,4 +1,3 @@
-'use client'
 
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -16,7 +15,7 @@ import {
   ArrowLeft
 } from 'lucide-react'
 import { apiService } from '@/lib/api'
-import Link from 'next/link'
+import { Link } from 'react-router-dom'
 import StockCharts from './StockCharts'
 import { ReportDisplay } from './ReportDisplay'
 import { AnalysisTaskDialog } from './AnalysisTaskDialog'

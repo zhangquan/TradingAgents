@@ -1,4 +1,4 @@
-'use client'
+
 
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -11,7 +11,7 @@ import {
   AlertCircle,
   Info,
   X,
-  MarkAsUnread,
+  Mail,
   Trash2
 } from 'lucide-react'
 import { useNotifications } from '@/hooks/useNotifications'

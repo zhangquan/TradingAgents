@@ -1,4 +1,3 @@
-'use client'
 
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -20,9 +19,9 @@ import {
   Eye,
   Star
 } from 'lucide-react'
-import { apiService, StockSummary, MarketOverviewResponse } from '@/lib/api'
+import { apiService, StockSummary, MarketOverviewResponse, NoDataError } from '@/lib/api'
 import { toast } from 'sonner'
-import Link from 'next/link'
+import { Link } from 'react-router-dom'
 import SimpleLineChart from './SimpleLineChart'
 import StockDetailPanel from './StockDetailPanel'
 
@@ -42,6 +41,15 @@ interface StockItem {
   simpleChartData?: { date: string; close: number }[]
   loading: boolean
   error?: string
+  noDataInfo?: {
+    error: string
+    error_type: string
+    symbol: string
+    requested_period: string
+    requested_date: string
+    suggestions: string[]
+    available_symbols: string[]
+  }
 }
 
 
@@ -106,7 +114,7 @@ export default function StockDataDashboard() {
       symbols.map(async (symbol) => {
         try {
           // 并行加载摘要数据和图表数据
-          const [summary, stockDataResponse] = await Promise.all([
+          const [summaryResult, stockDataResponse] = await Promise.all([
             apiService.getStockSummary(symbol, currentDate, 30),
             apiService.getStockData(symbol, currentDate, 7) // 只加载7天的数据用于小图表
               .catch(e => {
@@ -114,6 +122,17 @@ export default function StockDataDashboard() {
                 return { data: [] }
               })
           ])
+
+          // Check if summary result is a NoDataError
+          if ('error_type' in summaryResult && summaryResult.error_type === 'no_data') {
+            return {
+              symbol,
+              loading: false,
+              noDataInfo: summaryResult as NoDataError
+            }
+          }
+
+          const summary = summaryResult as StockSummary
 
           // 转换图表数据格式
           const chartData: ChartData[] = stockDataResponse.data && Array.isArray(stockDataResponse.data) 
@@ -272,7 +291,7 @@ export default function StockDataDashboard() {
             <Calendar className="h-4 w-4 mr-1" />
             {currentDate}
           </div>
-          <Link href="/watchlist">
+          <Link to="/watchlist">
             <Button variant="outline" size="sm">
               <Star className="h-4 w-4 mr-2" />
               管理关注
@@ -313,6 +332,62 @@ export default function StockDataDashboard() {
                             <div className="h-5 bg-gray-200 rounded animate-pulse" />
                             <div className="h-12 bg-gray-200 rounded animate-pulse" />
                             <div className="h-4 bg-gray-200 rounded animate-pulse" />
+                          </div>
+                        ) : stock.noDataInfo ? (
+                          <div className="space-y-4">
+                            <div className="flex items-center space-x-2">
+                              <Badge variant="outline" className="text-gray-600">
+                                {stock.noDataInfo.symbol}
+                              </Badge>
+                              <Badge variant="secondary" className="text-orange-600">
+                                无数据
+                              </Badge>
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              <p className="font-medium text-gray-800 mb-2">
+                                {stock.noDataInfo.error}
+                              </p>
+                              <div className="space-y-1 text-xs">
+                                <p><span className="font-medium">请求期间:</span> {stock.noDataInfo.requested_period}</p>
+                                <p><span className="font-medium">请求日期:</span> {stock.noDataInfo.requested_date}</p>
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <p className="text-xs font-medium text-gray-700">建议:</p>
+                              <ul className="text-xs text-gray-600 space-y-1">
+                                {stock.noDataInfo.suggestions.map((suggestion, index) => (
+                                  <li key={index} className="flex items-start">
+                                    <span className="text-gray-400 mr-1">•</span>
+                                    {suggestion}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                            {stock.noDataInfo.available_symbols.length > 0 && (
+                              <div className="space-y-2">
+                                <p className="text-xs font-medium text-gray-700">可用股票:</p>
+                                <div className="flex flex-wrap gap-1">
+                                  {stock.noDataInfo.available_symbols.slice(0, 5).map((symbol) => (
+                                    <Badge 
+                                      key={symbol} 
+                                      variant="outline" 
+                                      className="text-xs cursor-pointer hover:bg-blue-50"
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        loadStockData([symbol])
+                                      }}
+                                    >
+                                      {symbol}
+                                    </Badge>
+                                  ))}
+                                  {stock.noDataInfo.available_symbols.length > 5 && (
+                                    <Badge variant="outline" className="text-xs">
+                                      +{stock.noDataInfo.available_symbols.length - 5}
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         ) : stock.error ? (
                           <div className="text-red-600 text-sm">{stock.error}</div>

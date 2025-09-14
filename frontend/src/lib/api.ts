@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -221,6 +221,16 @@ export interface StockSummary {
     annualized_volatility: number
   }
   generated_at: string
+}
+
+export interface NoDataError {
+  error: string
+  error_type: string
+  symbol: string
+  requested_period: string
+  requested_date: string
+  suggestions: string[]
+  available_symbols: string[]
 }
 
 export interface TechnicalIndicatorResponse {
@@ -519,9 +529,17 @@ export const apiService = {
     return response.data
   },
 
-  async getStockSummary(symbol: string, currDate: string, lookBackDays: number = 30): Promise<StockSummary> {
-    const response = await api.get(`/api/stock/summary/${symbol}?curr_date=${currDate}&look_back_days=${lookBackDays}`)
-    return response.data
+  async getStockSummary(symbol: string, currDate: string, lookBackDays: number = 30): Promise<StockSummary | NoDataError> {
+    try {
+      const response = await api.get(`/api/stock/summary/${symbol}?curr_date=${currDate}&look_back_days=${lookBackDays}`)
+      return response.data
+    } catch (error: any) {
+      if (error.response?.status === 404 && error.response?.data) {
+        // Return the enhanced error information
+        return error.response.data as NoDataError
+      }
+      throw error
+    }
   },
 
   async getTechnicalIndicator(symbol: string, indicator: string, currDate: string, lookBackDays: number = 100): Promise<TechnicalIndicatorResponse> {

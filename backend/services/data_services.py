@@ -84,17 +84,7 @@ class DataServices:
             List[str]: 可用股票代码列表
         """
         try:
-            cache_dir = "tradingagents/dataflows/data_cache"
-            if not os.path.exists(cache_dir):
-                return []
-            
-            stocks = []
-            for file in os.listdir(cache_dir):
-                if file.endswith("-Polygon-data.csv"):
-                    stock_symbol = file.replace("-Polygon-data.csv", "")
-                    stocks.append(stock_symbol)
-            
-            return sorted(stocks)
+            return sorted(['TSLA','AAPL','NVDA',"CRCL"])
         except Exception as e:
             logger.error(f"获取可用股票列表失败: {str(e)}")
             return []
@@ -260,7 +250,19 @@ class DataServices:
             data = self.get_stock_data_window(symbol, curr_date, look_back_days)
             
             if data.empty:
-                return {"error": f"No data available for {symbol}"}
+                return {
+                    "error": f"No data available for {symbol}",
+                    "error_type": "no_data",
+                    "symbol": symbol.upper(),
+                    "requested_period": f"{look_back_days} days",
+                    "requested_date": curr_date,
+                    "suggestions": [
+                        "Try a different date range",
+                        "Check if the symbol is correct",
+                        "Verify if data exists for this time period"
+                    ],
+                    "available_symbols": self.get_available_stocks()
+                }
             
             # 计算基本统计信息
             latest_data = data.iloc[-1]

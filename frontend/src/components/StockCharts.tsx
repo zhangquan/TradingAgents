@@ -1,4 +1,4 @@
-'use client'
+
 
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -106,7 +106,8 @@ export default function StockCharts({ symbol, currentDate, lookBackDays = 30 }: 
         setStockData(chartData)
       } else {
         setStockData([])
-        toast.error(`未找到 ${symbol} 的股票数据`)
+        // Don't show error toast for empty data, let the UI handle it gracefully
+        console.warn(`No stock data available for ${symbol}`)
       }
 
       setSupportedIndicators(indicatorsResponse.indicators || {})
@@ -947,6 +948,43 @@ export default function StockCharts({ symbol, currentDate, lookBackDays = 30 }: 
           </CardHeader>
           <CardContent>
             <div className="h-64 bg-gray-200 rounded animate-pulse" />
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  // No data state
+  if (!stockData || stockData.length === 0) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <BarChart3 className="h-5 w-5" />
+              <span>{symbol} 图表分析</span>
+            </CardTitle>
+            <CardDescription>
+              期间: {currentDate} (回看 {lookBackDays} 天)
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col items-center justify-center h-64 space-y-4">
+              <div className="text-gray-400">
+                <BarChart3 className="h-16 w-16 mx-auto mb-4" />
+              </div>
+              <div className="text-center space-y-2">
+                <h3 className="text-lg font-medium text-gray-700">暂无图表数据</h3>
+                <p className="text-sm text-gray-500">
+                  未找到 {symbol} 在指定时间范围内的数据
+                </p>
+                <div className="text-xs text-gray-400 space-y-1">
+                  <p>• 请检查股票代码是否正确</p>
+                  <p>• 尝试调整日期范围</p>
+                  <p>• 确认该股票在此期间是否有交易数据</p>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>

@@ -124,7 +124,8 @@ async def get_stock_summary(
         summary = data_service.get_stock_summary(symbol.upper(), curr_date, look_back_days)
         
         if "error" in summary:
-            raise HTTPException(status_code=404, detail=summary["error"])
+            # Return the full error information instead of just the error message
+            raise HTTPException(status_code=404, detail=summary)
         
         return summary
     except HTTPException:

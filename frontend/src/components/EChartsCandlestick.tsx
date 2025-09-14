@@ -1,4 +1,4 @@
-'use client'
+
 
 import { useMemo } from 'react'
 import EChartsWrapper from './EChartsWrapper'

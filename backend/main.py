@@ -1,9 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 import asyncio
 import json
 import logging
 import uvicorn
+import os
 from datetime import datetime
 from backend.database.storage_service import DatabaseStorage
 from dotenv import load_dotenv
@@ -57,10 +59,47 @@ app.include_router(system.router)
 app.include_router(notifications.router)
 app.include_router(stock_data.router)
 
-# Root endpoints
-@app.get("/")
+# Mount static files (前端构建文件)
+static_dir = os.path.join(os.path.dirname(__file__), "static")
+if os.path.exists(static_dir):
+    app.mount("/static", StaticFiles(directory=static_dir), name="static")
+    # 为前端应用提供 SPA 路由支持
+    from fastapi import Request
+    from fastapi.responses import FileResponse
+    
+    @app.get("/{full_path:path}")
+    async def serve_spa(request: Request, full_path: str):
+        """为 SPA 应用提供路由支持，所有未匹配的路径都返回 index.html"""
+        # 检查是否是 API 路径
+        if full_path.startswith("api/") or full_path.startswith("docs") or full_path.startswith("openapi.json"):
+            # 这些路径应该由其他路由处理，返回 404
+            from fastapi import HTTPException
+            raise HTTPException(status_code=404, detail="Not found")
+        
+        # 检查是否是静态文件
+        static_file_path = os.path.join(static_dir, full_path)
+        if os.path.exists(static_file_path) and os.path.isfile(static_file_path):
+            return FileResponse(static_file_path)
+        
+        # 否则返回 index.html（SPA 路由）
+        index_file_path = os.path.join(static_dir, "index.html")
+        if os.path.exists(index_file_path):
+            return FileResponse(index_file_path)
+        
+        # 如果没有构建文件，返回提示信息
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Frontend not built. Please run 'npm run build' in the frontend directory.")
+
+# Root endpoint - 如果有静态文件则提供前端应用，否则显示 API 信息
+@app.get("/", include_in_schema=False)
 async def root():
-    return {"message": "TradingAgents API is running"}
+    """根路径处理 - 优先提供前端应用"""
+    index_file_path = os.path.join(static_dir, "index.html")
+    if os.path.exists(index_file_path):
+        from fastapi.responses import FileResponse
+        return FileResponse(index_file_path)
+    else:
+        return {"message": "TradingAgents API is running", "docs": "/docs", "health": "/health"}
 
 @app.get("/health")
 async def health_check():
@@ -102,4 +141,20 @@ async def websocket_endpoint(websocket):
         await websocket.close()
 
 if __name__ == "__main__":
-    uvicorn.run('backend.main:app', host="0.0.0.0", port=8000, reload=True)
+    import os
+    # 生产环境配置
+    is_production = os.getenv("ENVIRONMENT", "development") == "production"
+    
+    if is_production:
+        # 生产环境：不启用热重载，使用环境变量配置
+        uvicorn.run(
+            'backend.main:app', 
+            host=os.getenv("HOST", "0.0.0.0"), 
+            port=int(os.getenv("PORT", 8000)),
+            reload=False,
+            access_log=True,
+            log_level=os.getenv("LOG_LEVEL", "info").lower()
+        )
+    else:
+        # 开发环境：启用热重载
+        uvicorn.run('backend.main:app', host="0.0.0.0", port=8000, reload=True)

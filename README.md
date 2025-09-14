@@ -95,20 +95,24 @@ Our framework decomposes complex trading tasks into specialized roles. This ensu
 
 ### Quick Deployment with Docker (Recommended)
 
-The fastest way to get TradingAgents up and running is using our unified deployment script:
+The fastest way to get TradingAgents up and running is using our deployment and runtime scripts:
 
 ```bash
 # Clone the repository
 git clone https://github.com/TauricResearch/TradingAgents.git
 cd TradingAgents
 
-# One-command deployment
-./deploy.sh deploy
+# Step 1: Deploy (build and configure)
+./scripts/deploy.sh deploy
+
+# Step 2: Run services
+./scripts/run.sh start
 ```
 
 This will automatically:
 - Check your system environment
-- Build and start all services (Backend API + Frontend Web UI)
+- Build Docker images and configure services
+- Start all services (Backend API + Frontend Web UI)
 - Set up the database and necessary directories
 - Run health checks
 
@@ -117,13 +121,23 @@ This will automatically:
 - 🔌 **API**: http://localhost:8000
 - 📚 **API Documentation**: http://localhost:8000/docs
 
-**Other deployment commands:**
+**Deployment commands (scripts/deploy.sh):**
 ```bash
-./deploy.sh check      # Check system requirements
-./deploy.sh quick      # Quick start (without rebuild)
-./deploy.sh status     # View service status
-./deploy.sh logs       # View application logs
-./deploy.sh stop       # Stop all services
+./scripts/deploy.sh check      # Check system requirements
+./scripts/deploy.sh deploy     # Full deployment (build + configure)
+./scripts/deploy.sh quick      # Quick deployment (skip rebuild)
+./scripts/deploy.sh build      # Build Docker images only
+```
+
+**Runtime commands (scripts/run.sh):**
+```bash
+./scripts/run.sh start         # Start all services
+./scripts/run.sh stop          # Stop all services
+./scripts/run.sh restart       # Restart all services
+./scripts/run.sh status        # View service status
+./scripts/run.sh logs          # View application logs
+./scripts/run.sh monitor       # Real-time monitoring
+./scripts/run.sh health        # Health check
 ```
 
 **System Requirements:**

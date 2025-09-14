@@ -1,4 +1,4 @@
-'use client'
+
 
 import { useMemo } from 'react'
 import EChartsWrapper from './EChartsWrapper'
@@ -77,10 +77,10 @@ export default function AdvancedKLineChart({
 
     // 计算MACD
     const calculateMACD = () => {
-      const ema12 = []
-      const ema26 = []
-      const dif = []
-      const dea = []
+      const ema12: number[] = []
+      const ema26: number[] = []
+      const dif: number[] = []
+      const dea: number[] = []
       const macd = []
 
       for (let i = 0; i < data.length; i++) {

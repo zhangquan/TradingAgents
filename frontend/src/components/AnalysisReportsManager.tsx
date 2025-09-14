@@ -1,4 +1,3 @@
-'use client'
 
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
@@ -35,7 +34,7 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { formatDistanceToNow } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
-import Link from 'next/link'
+import { Link } from 'react-router-dom'
 
 
 interface AnalysisReportsManagerProps {
@@ -429,7 +428,7 @@ export function AnalysisReportsManager({ initialTicker = '' }: AnalysisReportsMa
                     </div>
                     
                     <div className="flex items-center gap-2">
-                      <Link href={getReportViewUrl(report)}>
+                      <Link to={getReportViewUrl(report)}>
                         <Button
                           variant="default"
                           size="sm"
