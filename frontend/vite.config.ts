@@ -3,8 +3,14 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [react()],
+  define: {
+    // Ensure VITE_API_BASE_URL is empty in production builds
+    ...(mode === 'production' && {
+      'import.meta.env.VITE_API_BASE_URL': JSON.stringify('')
+    })
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -39,4 +45,4 @@ export default defineConfig({
     port: 3000,
     host: '0.0.0.0',
   },
-})
+}))
