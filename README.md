@@ -62,7 +62,7 @@ Our framework decomposes complex trading tasks into specialized roles. This ensu
 ### Analyst Team
 - Fundamentals Analyst: Evaluates company financials and performance metrics, identifying intrinsic values and potential red flags.
 - Sentiment Analyst: Analyzes social media and public sentiment using sentiment scoring algorithms to gauge short-term market mood.
-- News Analyst: Monitors global news and macroeconomic indicators, interpreting the impact of events on market conditions.
+- News Analyst: Monitors global news and macroeconomic indicators, interpreting the impact of events on market conditions. Supports 16+ languages with intelligent language detection and localized analysis.
 - Technical Analyst: Utilizes technical indicators (like MACD and RSI) to detect trading patterns and forecast price movements.
 
 <p align="center">
@@ -90,6 +90,33 @@ Our framework decomposes complex trading tasks into specialized roles. This ensu
 <p align="center">
   <img src="assets/risk.png" width="70%" style="display: inline-block; margin: 0 2%;">
 </p>
+
+## Language Support
+
+TradingAgents provides comprehensive multilingual support for global users:
+
+### 🌍 Supported Languages (16+)
+- **Chinese**: 简体中文, 繁體中文
+- **English**: English (US)
+- **Japanese**: 日本語
+- **Korean**: 한국어
+- **European**: Français, Deutsch, Español, Italiano, Português
+- **Other**: Русский, العربية, हिन्दी, ไทย, Tiếng Việt
+
+### 🎯 Key Features
+- **Intelligent Language Detection**: Automatic detection from browser settings
+- **Localized Analysis**: News analyst provides culturally relevant market insights
+- **Flexible Configuration**: Set language preferences via UI, API, or environment variables
+- **Robust Fallbacks**: Graceful handling of unsupported languages
+
+### 📖 Configuration
+Configure your language preferences in **Settings** → **Language Settings** or via environment variables:
+```bash
+export REPORT_LANGUAGE="zh-CN"  # Analysis reports in Chinese
+export DEFAULT_LANGUAGE="zh-CN"  # System interface in Chinese
+```
+
+For detailed language configuration, see [Language Configuration Guide](docs/LANGUAGE_CONFIGURATION.md).
 
 ## Installation and CLI
 

@@ -335,13 +335,21 @@ export default function SettingsPage() {
                       <SelectContent>
                         <SelectItem value="auto">自动检测</SelectItem>
                         <SelectItem value="zh-CN">简体中文</SelectItem>
-                        <SelectItem value="zh-TW">繁体中文</SelectItem>
+                        <SelectItem value="zh-TW">繁體中文</SelectItem>
                         <SelectItem value="en-US">English</SelectItem>
                         <SelectItem value="ja-JP">日本語</SelectItem>
                         <SelectItem value="ko-KR">한국어</SelectItem>
                         <SelectItem value="fr-FR">Français</SelectItem>
                         <SelectItem value="de-DE">Deutsch</SelectItem>
                         <SelectItem value="es-ES">Español</SelectItem>
+                        <SelectItem value="it-IT">Italiano</SelectItem>
+                        <SelectItem value="pt-PT">Português</SelectItem>
+                        <SelectItem value="pt-BR">Português (Brasil)</SelectItem>
+                        <SelectItem value="ru-RU">Русский</SelectItem>
+                        <SelectItem value="ar-SA">العربية</SelectItem>
+                        <SelectItem value="hi-IN">हिन्दी</SelectItem>
+                        <SelectItem value="th-TH">ไทย</SelectItem>
+                        <SelectItem value="vi-VN">Tiếng Việt</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -357,13 +365,21 @@ export default function SettingsPage() {
                       <SelectContent>
                         <SelectItem value="auto">自动检测</SelectItem>
                         <SelectItem value="zh-CN">简体中文</SelectItem>
-                        <SelectItem value="zh-TW">繁体中文</SelectItem>
+                        <SelectItem value="zh-TW">繁體中文</SelectItem>
                         <SelectItem value="en-US">English</SelectItem>
                         <SelectItem value="ja-JP">日本語</SelectItem>
                         <SelectItem value="ko-KR">한국어</SelectItem>
                         <SelectItem value="fr-FR">Français</SelectItem>
                         <SelectItem value="de-DE">Deutsch</SelectItem>
                         <SelectItem value="es-ES">Español</SelectItem>
+                        <SelectItem value="it-IT">Italiano</SelectItem>
+                        <SelectItem value="pt-PT">Português</SelectItem>
+                        <SelectItem value="pt-BR">Português (Brasil)</SelectItem>
+                        <SelectItem value="ru-RU">Русский</SelectItem>
+                        <SelectItem value="ar-SA">العربية</SelectItem>
+                        <SelectItem value="hi-IN">हिन्दी</SelectItem>
+                        <SelectItem value="th-TH">ไทย</SelectItem>
+                        <SelectItem value="vi-VN">Tiếng Việt</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

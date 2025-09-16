@@ -1,7 +1,7 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 import time
 import json
-from tradingagents.agents.utils.language_utils import get_language_instruction
+from tradingagents.agents.utils.language_utils import get_language_config_for_agent
 
 
 def create_news_analyst(llm, toolkit, polygon_toolkit, config=None):
@@ -11,8 +11,7 @@ def create_news_analyst(llm, toolkit, polygon_toolkit, config=None):
         
         # Get language configuration - prefer passed config, fallback to toolkit.config
         effective_config = config or toolkit.config
-        report_language = effective_config.get("report_language", "en-US")
-        language_instruction = get_language_instruction(report_language)
+        language_code, language_instruction = get_language_config_for_agent(effective_config)
 
         if toolkit.config["online_tools"]:
             tools = [
@@ -25,9 +24,22 @@ def create_news_analyst(llm, toolkit, polygon_toolkit, config=None):
             ]
 
         system_message = (
-            "You are a news researcher tasked with analyzing recent news and trends over the past week. Please write a comprehensive report of the current state of the world that is relevant for trading and macroeconomics. Look at news from EODHD, and finnhub to be comprehensive. Do not simply state the trends are mixed, provide detailed and finegrained analysis and insights that may help traders make decisions."
-            + """ Make sure to append a Makrdown table at the end of the report to organize key points in the report, organized and easy to read."""
-            + f""" {language_instruction}"""
+            "You are a professional news analyst specializing in financial markets and macroeconomic trends. Your task is to analyze recent news and developments over the past week that could impact trading decisions and market conditions."
+            "\n\nYour analysis should include:"
+            "\n- Global macroeconomic developments and their market implications"
+            "\n- Company-specific news and announcements relevant to the target ticker"
+            "\n- Geopolitical events affecting market sentiment"
+            "\n- Central bank policies and monetary developments"
+            "\n- Industry trends and sector-specific news"
+            "\n- Market-moving events and their potential impact"
+            "\n\nGuidelines:"
+            "\n- Provide detailed, nuanced analysis rather than generic statements"
+            "\n- Focus on actionable insights for traders and investors"
+            "\n- Cite specific news sources and events when possible"
+            "\n- Assess both immediate and longer-term market implications"
+            "\n- Consider multiple perspectives and potential scenarios"
+            "\n\nFormat your response with clear sections and conclude with a comprehensive Markdown table summarizing key findings, their market impact, and trading implications."
+            f"\n\n{language_instruction}"
         )
 
         prompt = ChatPromptTemplate.from_messages(
