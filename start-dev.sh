@@ -3,6 +3,12 @@
 echo "🚀 Starting TradingAgents Development Environment"
 echo "================================================"
 
+# Set development environment variables
+export ENVIRONMENT=dev
+export DATA_PROVIDER=polygon
+echo "📊 Environment: $ENVIRONMENT"
+echo "🔧 Data Provider: $DATA_PROVIDER"
+
 # Check if ports are available
 if lsof -Pi :8000 -sTCP:LISTEN -t >/dev/null ; then
     echo "❌ Port 8000 is already in use. Please stop the service and try again."

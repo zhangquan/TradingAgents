@@ -17,8 +17,9 @@ from pathlib import Path
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from tradingagents.dataflows.polygon_utils import PolygonUtils
+from tradingagents.dataflows.data_provider_interface import DataProviderFactory
 from tradingagents.dataflows.stockstats_polygon_utils import StockstatsPolygonUtils
+from tradingagents.default_config import DEFAULT_CONFIG
 
 # 配置日志
 logging.basicConfig(level=logging.INFO)
@@ -28,26 +29,42 @@ logger = logging.getLogger(__name__)
 class DataServices:
     """
     数据服务类，提供股票数据获取和技术指标计算功能
+    支持多种数据源：Polygon.io、Yahoo Finance等，根据环境配置自动选择
     """
     
-    def __init__(self, require_api_key: bool = False):
+    def __init__(self, require_api_key: bool = False, data_provider: str = None):
         """
         初始化数据服务
         
         Args:
             require_api_key (bool): 是否需要API密钥，False时仅使用缓存数据
+            data_provider (str): 数据提供商名称，如果为None则使用配置中的默认值
         """
         self.require_api_key = require_api_key
         
-        # 初始化PolygonUtils
-        try:
-            self.polygon_utils = PolygonUtils(require_api_key=require_api_key)
-            logger.info(f"PolygonUtils初始化成功，require_api_key={require_api_key}")
-        except Exception as e:
-            logger.warning(f"初始化PolygonUtils失败: {e}")
-            self.polygon_utils = None
+        # 确定数据提供商
+        self.data_provider_name = data_provider or DEFAULT_CONFIG.get("data_provider", "polygon")
+        logger.info(f"使用数据提供商: {self.data_provider_name}")
         
-        # 初始化StockstatsPolygonUtils
+        # 初始化数据提供商
+        try:
+            self.data_provider = DataProviderFactory.create_provider(
+                self.data_provider_name, 
+                require_api_key=require_api_key
+            )
+            logger.info(f"数据提供商 {self.data_provider_name} 初始化成功，require_api_key={require_api_key}")
+        except Exception as e:
+            logger.warning(f"初始化数据提供商 {self.data_provider_name} 失败: {e}")
+            # 回退到Polygon作为默认选项
+            try:
+                self.data_provider = DataProviderFactory.create_provider("polygon", require_api_key=require_api_key)
+                self.data_provider_name = "polygon"
+                logger.info("回退到Polygon数据提供商")
+            except Exception as e2:
+                logger.error(f"回退到Polygon也失败: {e2}")
+                self.data_provider = None
+        
+        # 初始化StockstatsPolygonUtils（技术指标计算仍使用原有逻辑）
         self.stockstats_utils = StockstatsPolygonUtils()
         
         # 支持的技术指标列表
@@ -78,16 +95,36 @@ class DataServices:
     
     def get_available_stocks(self) -> List[str]:
         """
-        获取缓存中可用的股票列表
+        获取可用的股票列表
         
         Returns:
             List[str]: 可用股票代码列表
         """
         try:
-            return sorted(['TSLA','AAPL','NVDA',"CRCL"])
+            # 根据数据提供商返回不同的默认股票列表
+            if self.data_provider_name == "yahoo":
+                # Yahoo Finance 支持更广泛的股票
+                return sorted(['AAPL', 'GOOGL', 'MSFT', 'AMZN', 'TSLA', 'NVDA', 'META', 'NFLX', 'CRCL'])
+            else:
+                # Polygon 和其他提供商使用现有的列表
+                return sorted(['TSLA','AAPL','NVDA',"CRCL"])
         except Exception as e:
             logger.error(f"获取可用股票列表失败: {str(e)}")
             return []
+    
+    def get_data_provider_info(self) -> Dict:
+        """
+        获取当前数据提供商信息
+        
+        Returns:
+            Dict: 数据提供商信息
+        """
+        return {
+            "provider_name": self.data_provider_name,
+            "is_available": self.data_provider.is_available() if self.data_provider else False,
+            "require_api_key": self.require_api_key,
+            "environment": DEFAULT_CONFIG.get("environment", "dev")
+        }
     
     
     
@@ -132,12 +169,12 @@ class DataServices:
             pd.DataFrame: 股票数据
         """
         try:
-            if self.polygon_utils is None:
-                logger.warning("PolygonUtils未初始化，无法获取数据")
+            if self.data_provider is None:
+                logger.warning(f"数据提供商 {self.data_provider_name} 未初始化，无法获取数据")
                 return pd.DataFrame()
             
-            # 使用 PolygonUtils 获取窗口期数据（完全使用缓存，不联网）
-            data = self.polygon_utils.get_stock_data_window_cached(
+            # 使用配置的数据提供商获取窗口期数据
+            data = self.data_provider.get_stock_data_window_cached(
                 symbol=symbol,
                 curr_date=curr_date,
                 look_back_days=look_back_days,
@@ -146,7 +183,7 @@ class DataServices:
             
             return data
         except Exception as e:
-            logger.error(f"从缓存获取窗口期股票数据失败 {symbol}: {str(e)}")
+            logger.error(f"从数据提供商 {self.data_provider_name} 获取窗口期股票数据失败 {symbol}: {str(e)}")
             return pd.DataFrame()
     
     def calculate_technical_indicator(

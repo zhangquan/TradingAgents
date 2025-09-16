@@ -1,5 +1,34 @@
 import os
 
+
+def get_data_provider_for_environment(environment: str = None) -> str:
+    """
+    Get the appropriate data provider based on environment.
+    
+    Args:
+        environment: Environment name (dev, pro, test). If None, uses ENVIRONMENT env var.
+        
+    Returns:
+        str: Data provider name (polygon, yahoo, finnhub)
+    """
+    if environment is None:
+        environment = os.getenv("ENVIRONMENT", "dev")
+    
+    # Environment-based data provider mapping
+    env_provider_map = {
+        "dev": "polygon",      # Development uses Polygon
+        "pro": "yahoo",        # Production uses Yahoo Finance
+        "test": "polygon",     # Test environment uses Polygon
+    }
+    
+    # Check if DATA_PROVIDER is explicitly set, otherwise use environment mapping
+    explicit_provider = os.getenv("DATA_PROVIDER")
+    if explicit_provider:
+        return explicit_provider
+    
+    return env_provider_map.get(environment, "polygon")
+
+
 DEFAULT_CONFIG = {
     "project_dir": os.path.abspath(os.path.join(os.path.dirname(__file__), ".")),
     "results_dir": os.getenv("TRADINGAGENTS_RESULTS_DIR", "./results"),
@@ -8,6 +37,9 @@ DEFAULT_CONFIG = {
         os.path.abspath(os.path.join(os.path.dirname(__file__), ".")),
         "dataflows/data_cache",
     ),
+    # Data provider settings
+    "data_provider": get_data_provider_for_environment(),  # polygon, yahoo, finnhub
+    "environment": os.getenv("ENVIRONMENT", "dev"),  # dev, pro, test
     # LLM settings
     "llm_provider": os.getenv("LLM_PROVIDER", "aliyun"),
     "deep_think_llm": os.getenv("DEEP_THINK_LLM", "qwen3-235b-a22b-instruct-2507"),
