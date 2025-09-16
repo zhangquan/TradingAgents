@@ -1,10 +1,10 @@
-# Data Provider Configuration System
+# Configurable Data Provider System
 
-This document explains the configurable stock data API system that allows switching between different data providers based on environment configuration.
+This document explains the configurable stock data API system that allows switching between different data providers based on environment configuration through function arguments and toolkit configuration.
 
 ## Overview
 
-The system supports multiple stock data providers:
+The system supports multiple stock data providers through configurable toolkits:
 - **Polygon.io** - Professional financial data API (requires API key)
 - **Yahoo Finance** - Free stock data service
 - **Finnhub** - Financial data API (placeholder for future implementation)
@@ -115,70 +115,77 @@ Now includes data provider information:
    - Contains environment-based provider mapping
    - `get_data_provider_for_environment()` function
 
-2. **`tradingagents/dataflows/data_provider_interface.py`**
-   - `DataProviderInterface` protocol
-   - Provider implementations (`PolygonDataProvider`, `YahooFinanceDataProvider`)
-   - `DataProviderFactory` for creating provider instances
+2. **`tradingagents/agents/utils/configurable_data_toolkit.py`**
+   - `ConfigurableDataToolkit` class that switches providers based on config
+   - `create_data_toolkit()` factory function
+   - Tools that automatically use the configured data provider
 
-3. **`backend/services/data_services.py`**
-   - Updated `DataServices` class to use configurable providers
-   - Automatic fallback to Polygon if primary provider fails
+3. **Agent Functions (e.g., `market_analyst.py`, `news_analyst.py`)**
+   - Updated to accept `data_toolkit` parameter instead of `polygon_toolkit`
+   - Automatic fallback to default toolkit if none provided
 
-### Provider Implementations
+### Toolkit Configuration
 
-#### Polygon Provider
-- Uses existing `PolygonUtils` 
-- Supports caching and API key requirements
-- Best for development with detailed market data
+#### ConfigurableDataToolkit
+- Automatically selects provider based on configuration
+- Provides unified tool interface (`get_stock_data_window`, `get_stockstats_indicators_report_window`)
+- Switches between Polygon and Yahoo Finance implementations
+- Handles errors gracefully with informative messages
 
-#### Yahoo Finance Provider
-- Uses `yfinance` library
-- No API key required
-- Standardizes column names to match Polygon format
-- Good for production with reliable free data
-
-#### Finnhub Provider
-- Placeholder for future implementation
-- Requires API key configuration
+#### Provider Switching Logic
+- **Polygon**: Uses existing `polygon_interface` functions
+- **Yahoo Finance**: Uses `get_yfinance_data` function for price data
+- **Fallback**: Defaults to Polygon if provider not recognized
 
 ## Usage Examples
 
-### Backend Service Initialization
+### Agent Creation with Data Provider Configuration
 ```python
-from backend.services.data_services import DataServices
+from tradingagents.agents.analysts.market_analyst import create_market_analyst
+from tradingagents.agents.utils.configurable_data_toolkit import create_data_toolkit
 
-# Use default provider from config
-service = DataServices(require_api_key=False)
+# Create toolkit with specific provider
+config = {"data_provider": "yahoo", "environment": "pro"}
+data_toolkit = create_data_toolkit(config)
 
-# Override provider explicitly
-service = DataServices(require_api_key=False, data_provider="yahoo")
-
-# Get provider information
-info = service.get_data_provider_info()
-print(f"Using {info['provider_name']} provider")
+# Create market analyst with Yahoo Finance data
+market_analyst = create_market_analyst(llm, toolkit, data_toolkit, config)
 ```
 
-### Trading Agents Integration
+### Trading Graph Integration
 ```python
-from tradingagents.dataflows.data_provider_interface import DataProviderFactory
+from tradingagents.graph.trading_graph import TradingAgentsGraph
 
-# Create provider based on config
-provider = DataProviderFactory.create_provider(
-    DEFAULT_CONFIG["data_provider"], 
-    require_api_key=False
-)
+# Set environment to use Yahoo Finance in production
+config = {"environment": "pro", "data_provider": "yahoo"}
+graph = TradingAgentsGraph(config=config)
 
-# Get stock data
-data = provider.get_stock_data_window("AAPL", "2025-01-15", 30)
+# The graph will automatically create data toolkits with Yahoo Finance
+```
+
+### Direct Toolkit Usage
+```python
+from tradingagents.agents.utils.configurable_data_toolkit import create_data_toolkit
+
+# Create toolkit for development (uses Polygon)
+dev_toolkit = create_data_toolkit({"environment": "dev"})
+
+# Create toolkit for production (uses Yahoo Finance)  
+pro_toolkit = create_data_toolkit({"environment": "pro"})
+
+# Get provider information
+print(dev_toolkit.get_provider_info())  # {'provider': 'polygon', 'environment': 'dev'}
+print(pro_toolkit.get_provider_info())  # {'provider': 'yahoo', 'environment': 'pro'}
 ```
 
 ## Benefits
 
-1. **Environment Flexibility** - Different providers for dev/prod
-2. **Fallback Safety** - Automatic fallback to Polygon if primary fails
-3. **API Compatibility** - Unified interface across providers
-4. **Easy Configuration** - Simple environment variable setup
+1. **Function-Level Configuration** - Pass data provider config directly to agent functions
+2. **Environment Flexibility** - Different providers for dev/prod environments
+3. **Backward Compatibility** - Existing code continues to work with polygon_toolkit
+4. **Simple Integration** - Just pass data_toolkit instead of polygon_toolkit
 5. **Cost Optimization** - Use free providers in prod, detailed providers in dev
+6. **Unified Tool Interface** - Same tool names regardless of underlying provider
 
 ## Testing
 
@@ -201,7 +208,25 @@ export DATA_PROVIDER=polygon
 
 ## Migration Notes
 
-- Existing Polygon-based functionality continues to work
-- No breaking changes to existing APIs
-- Additional providers can be easily added to the factory
-- Configuration is backward compatible
+- **Backward Compatibility**: Existing `polygon_toolkit` usage continues to work
+- **Simple Migration**: Replace `polygon_toolkit` parameter with `data_toolkit` in agent functions
+- **No Breaking Changes**: Existing APIs and tool names remain the same
+- **Easy Extension**: New providers can be added to `ConfigurableDataToolkit`
+- **Function-Level Control**: Each agent can use different data providers if needed
+
+## Function Signature Changes
+
+### Before (Polygon-only)
+```python
+def create_market_analyst(llm, toolkit, polygon_toolkit, config=None):
+```
+
+### After (Configurable)
+```python  
+def create_market_analyst(llm, toolkit, data_toolkit=None, config=None):
+```
+
+The new approach allows:
+- Passing a configured `data_toolkit` that uses any provider
+- Automatic fallback to polygon_toolkit for backward compatibility
+- Environment-based provider selection through configuration

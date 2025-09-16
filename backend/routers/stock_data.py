@@ -435,31 +435,15 @@ async def check_watchlist_status(
         logger.error(f"检查关注状态失败 {user_id} {symbol}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-# 数据提供商信息端点
-@router.get("/provider-info")
-async def get_provider_info():
-    """获取当前数据提供商信息"""
-    try:
-        provider_info = data_service.get_data_provider_info()
-        return {
-            **provider_info,
-            "timestamp": datetime.now().isoformat()
-        }
-    except Exception as e:
-        logger.error(f"获取数据提供商信息失败: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
 # 健康检查端点
 @router.get("/health")
 async def health_check():
     """股票数据服务健康检查"""
     try:
         available_stocks = data_service.get_available_stocks()
-        provider_info = data_service.get_data_provider_info()
         return {
             "status": "healthy",
             "available_stocks_count": len(available_stocks),
-            "data_provider": provider_info,
             "timestamp": datetime.now().isoformat(),
             "service": "stock-data"
         }
