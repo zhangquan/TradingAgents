@@ -15,7 +15,8 @@ from sqlalchemy.exc import IntegrityError
 from .database import SessionLocal
 from .models import (
     User, Analysis, Report, Notification, SystemConfig,
-    UserConfig, CacheEntry, SystemLog, ScheduledTask, Watchlist
+    UserConfig, CacheEntry, SystemLog, ScheduledTask, Watchlist,
+    ConversationState, ChatMessage
 )
 
 logger = logging.getLogger(__name__)
@@ -246,7 +247,7 @@ class DatabaseStorage:
             return False
     
     # Report Management
-    def save_unified_report(self, analysis_id: str, user_id: str, ticker: str, sections: Dict[str, str], title: str = None) -> str:
+    def save_unified_report(self, analysis_id: str, user_id: str, ticker: str, sections: Dict[str, str], title: str = None, session_id: str = None) -> str:
         """Save a unified report with multiple sections for an analysis."""
         try:
             with self._get_session() as db:
@@ -259,6 +260,8 @@ class DatabaseStorage:
                     # Update existing report
                     existing_report.sections = sections
                     existing_report.title = title or existing_report.title
+                    if session_id:
+                        existing_report.session_id = session_id
                     existing_report.updated_at = datetime.now()
                     db.commit()
                     logger.info(f"Updated unified report: {existing_report.report_id} for analysis {analysis_id}")
@@ -275,6 +278,7 @@ class DatabaseStorage:
                         ticker=ticker.upper(),
                         title=title or f"{ticker.upper()} Complete Analysis Report",
                         sections=sections,
+                        session_id=session_id,
                         status="generated"
                     )
                     
@@ -306,6 +310,7 @@ class DatabaseStorage:
                 
                 return {
                     "report_id": report.report_id,
+                    "session_id": report.session_id,
                     "analysis_id": report.analysis_id,
                     "user_id": report.user_id,
                     "ticker": report.ticker,
@@ -537,6 +542,7 @@ class DatabaseStorage:
                 logger.info(f"Cleared {len(expired_entries)} expired cache entries")
         except Exception as e:
             logger.error(f"Error clearing expired cache: {e}")
+    
     
     # Notification Management
     def save_notification(self, user_id: str, notification: Dict[str, Any]) -> str:
@@ -1086,7 +1092,9 @@ class DatabaseStorage:
                     "cache_entries": CacheEntry,
                     "system_logs": SystemLog,
                     "scheduled_tasks": ScheduledTask,
-                    "watchlist": Watchlist
+                    "watchlist": Watchlist,
+                    "conversation_states": ConversationState,
+                    "chat_messages": ChatMessage
                 }
                 
                 for table_name, model in tables.items():
@@ -1098,6 +1106,243 @@ class DatabaseStorage:
             logger.error(f"Error getting storage stats: {e}")
             return {"error": str(e)}
     
+    # Conversation State Management
+    def save_conversation_state(self, session_id: str, user_id: str, ticker: str, 
+                               state_data: Dict[str, Any]) -> bool:
+        """Save or update conversation state."""
+        try:
+            with self._get_session() as db:
+                # Check if conversation state already exists
+                existing_state = db.query(ConversationState).filter(
+                    ConversationState.session_id == session_id
+                ).first()
+                
+                if existing_state:
+                    # Update existing state
+                    for key, value in state_data.items():
+                        if hasattr(existing_state, key):
+                            # Handle datetime fields that might be strings
+                            if key in ["last_interaction", "created_at", "updated_at"] and isinstance(value, str):
+                                try:
+                                    setattr(existing_state, key, datetime.fromisoformat(value.replace('Z', '+00:00')))
+                                except ValueError:
+                                    # Skip invalid datetime strings
+                                    continue
+                            elif key in ["created_at", "updated_at"] and value is None:
+                                # Skip None values for datetime fields that have defaults
+                                continue
+                            else:
+                                setattr(existing_state, key, value)
+                    
+                    existing_state.updated_at = datetime.now()
+                    db.commit()
+                    logger.info(f"Updated conversation state: {session_id}")
+                    return True
+                else:
+                    # Create new conversation state
+                    conversation_state = ConversationState(
+                        session_id=session_id,
+                        user_id=user_id,
+                        ticker=ticker.upper(),
+                        analysis_date=state_data.get("analysis_date"),
+                        task_id=state_data.get("task_id"),
+                        analysis_id=state_data.get("analysis_id"),
+                        analysts=state_data.get("analysts", []),
+                        research_depth=state_data.get("research_depth", 1),
+                        llm_config=state_data.get("llm_config", {}),
+                        agent_status=state_data.get("agent_status", {}),
+                        current_agent=state_data.get("current_agent"),
+                        messages=state_data.get("messages", []),
+                        tool_calls=state_data.get("tool_calls", []),
+                        report_sections=state_data.get("report_sections", {}),
+                        current_report=state_data.get("current_report"),
+                        final_report=state_data.get("final_report"),
+                        final_state=state_data.get("final_state"),
+                        processed_signal=state_data.get("processed_signal"),
+                        last_interaction=datetime.now(),
+                        is_finalized=state_data.get("is_finalized", False)
+                    )
+                    
+                    db.add(conversation_state)
+                    db.commit()
+                    db.refresh(conversation_state)
+                    
+                    logger.info(f"Created conversation state: {session_id}")
+                    return True
+                    
+        except Exception as e:
+            logger.error(f"Error saving conversation state {session_id}: {e}")
+            return False
+    
+    def get_conversation_state(self, session_id: str) -> Optional[Dict[str, Any]]:
+        """Get conversation state by session ID."""
+        try:
+            with self._get_session() as db:
+                state = db.query(ConversationState).filter(
+                    ConversationState.session_id == session_id
+                ).first()
+                
+                if not state:
+                    return None
+                
+                return {
+                    "session_id": state.session_id,
+                    "user_id": state.user_id,
+                    "ticker": state.ticker,
+                    "analysis_date": state.analysis_date,
+                    "task_id": state.task_id,
+                    "analysis_id": state.analysis_id,
+                    "analysts": state.analysts,
+                    "research_depth": state.research_depth,
+                    "llm_config": state.llm_config,
+                    "agent_status": state.agent_status,
+                    "current_agent": state.current_agent,
+                    "messages": state.messages,
+                    "tool_calls": state.tool_calls,
+                    "report_sections": state.report_sections,
+                    "current_report": state.current_report,
+                    "final_report": state.final_report,
+                    "final_state": state.final_state,
+                    "processed_signal": state.processed_signal,
+                    "last_interaction": state.last_interaction.isoformat() if state.last_interaction else None,
+                    "is_finalized": state.is_finalized,
+                    "created_at": state.created_at.isoformat() if state.created_at else None,
+                    "updated_at": state.updated_at.isoformat() if state.updated_at else None
+                }
+        except Exception as e:
+            logger.error(f"Error getting conversation state {session_id}: {e}")
+            return None
+    
+    def list_conversation_states(self, user_id: str, ticker: str = None, 
+                                finalized_only: bool = False, limit: int = 50) -> List[Dict[str, Any]]:
+        """List conversation states for a user."""
+        try:
+            with self._get_session() as db:
+                query = db.query(ConversationState).filter(ConversationState.user_id == user_id)
+                
+                if ticker:
+                    query = query.filter(ConversationState.ticker == ticker.upper())
+                if finalized_only:
+                    query = query.filter(ConversationState.is_finalized == True)
+                
+                states = query.order_by(desc(ConversationState.last_interaction)).limit(limit).all()
+                
+                return [
+                    {
+                        "session_id": state.session_id,
+                        "user_id": state.user_id,
+                        "ticker": state.ticker,
+                        "analysis_date": state.analysis_date,
+                        "task_id": state.task_id,
+                        "analysis_id": state.analysis_id,
+                        "current_agent": state.current_agent,
+                        "is_finalized": state.is_finalized,
+                        "last_interaction": state.last_interaction.isoformat() if state.last_interaction else None,
+                        "created_at": state.created_at.isoformat() if state.created_at else None,
+                        "updated_at": state.updated_at.isoformat() if state.updated_at else None
+                    }
+                    for state in states
+                ]
+        except Exception as e:
+            logger.error(f"Error listing conversation states for user {user_id}: {e}")
+            return []
+    
+    def finalize_conversation_state(self, session_id: str) -> bool:
+        """Mark conversation state as finalized."""
+        try:
+            with self._get_session() as db:
+                state = db.query(ConversationState).filter(
+                    ConversationState.session_id == session_id
+                ).first()
+                
+                if state:
+                    state.is_finalized = True
+                    state.last_interaction = datetime.now()
+                    db.commit()
+                    
+                    logger.info(f"Finalized conversation state: {session_id}")
+                    return True
+                return False
+        except Exception as e:
+            logger.error(f"Error finalizing conversation state {session_id}: {e}")
+            return False
+    
+    def delete_conversation_state(self, session_id: str) -> bool:
+        """Delete conversation state and associated chat messages."""
+        try:
+            with self._get_session() as db:
+                # Delete associated chat messages first
+                db.query(ChatMessage).filter(ChatMessage.session_id == session_id).delete()
+                
+                # Delete conversation state
+                state = db.query(ConversationState).filter(
+                    ConversationState.session_id == session_id
+                ).first()
+                
+                if state:
+                    db.delete(state)
+                    db.commit()
+                    
+                    logger.info(f"Deleted conversation state: {session_id}")
+                    return True
+                return False
+        except Exception as e:
+            logger.error(f"Error deleting conversation state {session_id}: {e}")
+            return False
+    
+    # Chat Message Management
+    def save_chat_message(self, session_id: str, user_id: str, message_data: Dict[str, Any]) -> str:
+        """Save chat message."""
+        try:
+            with self._get_session() as db:
+                message_id = message_data.get("message_id") or f"msg_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}"
+                
+                chat_message = ChatMessage(
+                    message_id=message_id,
+                    session_id=session_id,
+                    user_id=user_id,
+                    role=message_data["role"],
+                    content=message_data["content"],
+                    message_type=message_data.get("message_type", "text"),
+                    message_metadata=message_data.get("metadata", {})
+                )
+                
+                db.add(chat_message)
+                db.commit()
+                db.refresh(chat_message)
+                
+                logger.info(f"Saved chat message: {message_id}")
+                return message_id
+                
+        except Exception as e:
+            logger.error(f"Error saving chat message for session {session_id}: {e}")
+            raise
+    
+    def get_chat_messages(self, session_id: str, limit: int = 100) -> List[Dict[str, Any]]:
+        """Get chat messages for a session."""
+        try:
+            with self._get_session() as db:
+                messages = db.query(ChatMessage).filter(
+                    ChatMessage.session_id == session_id
+                ).order_by(ChatMessage.created_at).limit(limit).all()
+                
+                return [
+                    {
+                        "message_id": msg.message_id,
+                        "session_id": msg.session_id,
+                        "user_id": msg.user_id,
+                        "role": msg.role,
+                        "content": msg.content,
+                        "message_type": msg.message_type,
+                        "metadata": msg.message_metadata,
+                        "created_at": msg.created_at.isoformat() if msg.created_at else None
+                    }
+                    for msg in messages
+                ]
+        except Exception as e:
+            logger.error(f"Error getting chat messages for session {session_id}: {e}")
+            return []
+
     # Backup functionality (placeholder)
     def create_backup(self, backup_name: str = None) -> str:
         """Create a backup (placeholder for database backup)."""

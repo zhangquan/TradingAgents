@@ -8,7 +8,7 @@ import AdminPage from '@/pages/admin/page'
 import AnalysisPage from '@/pages/analysis/page'
 import ChartsPage from '@/pages/charts-demo/page'
 import ReportsPage from '@/pages/reports/page'
-import ReportDetailPage from '@/pages/reports/[id]/page'
+import ReportDetailPage from '@/pages/reports/page'
 import SettingsPage from '@/pages/settings/page'
 import WatchlistPage from '@/pages/watchlist/page'
 

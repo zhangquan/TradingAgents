@@ -454,7 +454,7 @@ class SchedulerService:
             
             # 在线程池中执行同步分析，避免阻塞事件循环
             result = await asyncio.to_thread(
-                self.analysis_runner.run_sync_analysis,
+                self.analysis_runner.run_sync_analysis_with_memory,
                 task_id=execution_id,
                 ticker=ticker,
                 analysis_date=analysis_date,

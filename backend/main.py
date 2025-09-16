@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Import routers and services
-from backend.routers import analysis, reports,system, notifications, stock_data
+from backend.routers import analysis, reports,system, notifications, stock_data, conversation_memory
 from backend.services.scheduler_service import scheduler_service
 
 app = FastAPI(title="TradingAgents API", version="1.0.0")
@@ -58,6 +58,7 @@ app.include_router(reports.router)
 app.include_router(system.router)
 app.include_router(notifications.router)
 app.include_router(stock_data.router)
+app.include_router(conversation_memory.router)  # New conversation memory API
 
 # Mount static files (前端构建文件)
 static_dir = os.path.join(os.path.dirname(__file__), "static")

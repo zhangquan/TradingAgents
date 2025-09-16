@@ -12,7 +12,8 @@ import {
   Settings,
   Plus,
   Clock,
-  ArrowLeft
+  ArrowLeft,
+  MessageCircle
 } from 'lucide-react'
 import { apiService } from '@/lib/api'
 import { Link } from 'react-router-dom'
@@ -21,6 +22,7 @@ import { ReportDisplay } from './ReportDisplay'
 import { AnalysisTaskDialog } from './AnalysisTaskDialog'
 import { TaskManagementDialog } from './TaskManagementDialog'
 import { HistoryReportsDialog } from './HistoryReportsDialog'
+import { AgentChatDialog } from './AgentChatDialog'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
@@ -35,6 +37,7 @@ interface AnalysisReportData {
   status?: string
   created_at?: string
   updated_at?: string
+  session_id?: string
 }
 
 interface AnalysisReport {
@@ -107,6 +110,9 @@ export default function StockDetailPanel({
   const [analysisDialogMode, setAnalysisDialogMode] = useState<'immediate' | 'scheduled' | 'edit'>('immediate')
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null)
   const [taskManagementDialogOpen, setTaskManagementDialogOpen] = useState(false)
+  
+  // Agent chat dialog states
+  const [agentChatDialogOpen, setAgentChatDialogOpen] = useState(false)
 
   useEffect(() => {
     // 当选中的股票变化时，重置分析报告状态
@@ -451,6 +457,20 @@ export default function StockDetailPanel({
                                 生成于 {formatReportTime(analysisReport.reportData.created_at)}
                               </span>
                             )}
+
+                            {/* Agent对话入口 */}
+                            {analysisReport.reportData?.session_id && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setAgentChatDialogOpen(true)}
+                                className="text-indigo-600 border-indigo-300 hover:bg-indigo-50"
+                              >
+                                <MessageCircle className="h-3 w-3 mr-1" />
+                                Agent对话
+                              </Button>
+                            )}
+                            
                           </div>
                         </div>
                         {isHistoryReport && (
@@ -515,6 +535,16 @@ export default function StockDetailPanel({
           onOpenChange={setTaskManagementDialogOpen}
           ticker={selectedStockSymbol}
           onTaskUpdated={handleTaskManagementUpdated}
+        />
+      )}
+
+      {/* Agent Chat Dialog */}
+      {selectedStockSymbol && analysisReport.reportData?.session_id && (
+        <AgentChatDialog
+          open={agentChatDialogOpen}
+          onOpenChange={setAgentChatDialogOpen}
+          reportId={analysisReport.reportData.report_id}
+          sessionId={analysisReport.reportData.session_id}
         />
       )}
     </Card>

@@ -16,7 +16,8 @@ def create_news_analyst(llm, toolkit, polygon_toolkit, config=None):
 
         if toolkit.config["online_tools"]:
             tools = [
-                toolkit.get_google_news]
+                toolkit.get_google_news
+                ]
         else:
             tools = [
                 toolkit.get_finnhub_news,

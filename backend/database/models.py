@@ -100,6 +100,9 @@ class Report(Base):
     # }
     sections = Column(JSON, nullable=False)  # All report sections in one JSON field
     
+    # Conversation memory link
+    session_id = Column(String(255), nullable=True, index=True)  # Link to conversation session
+    
     # Status
     status = Column(String(50), default="generated", index=True)  # generated, reviewed, archived
     
@@ -118,6 +121,7 @@ class Report(Base):
         Index('idx_analysis_created', 'analysis_id', 'created_at'),
         Index('idx_ticker_created', 'ticker', 'created_at'),
         Index('idx_user_status', 'user_id', 'status'),
+        Index('idx_session_id', 'session_id'),
     )
     
     def __repr__(self):
@@ -322,3 +326,98 @@ class Watchlist(Base):
     
     def __repr__(self):
         return f"<Watchlist(user_id='{self.user_id}', ticker='{self.ticker}', priority={self.priority})>"
+
+
+class ConversationState(Base):
+    """Conversation state model for storing chat sessions and analysis contexts."""
+    __tablename__ = "conversation_states"
+    
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    session_id = Column(String(255), unique=True, nullable=False, index=True)
+    user_id = Column(String(100), ForeignKey("users.user_id"), nullable=False, index=True)
+    
+    # Analysis context
+    ticker = Column(String(20), nullable=False, index=True)
+    analysis_date = Column(String(20))  # YYYY-MM-DD format
+    task_id = Column(String(255), index=True)  # Link to scheduled task
+    analysis_id = Column(String(255), ForeignKey("analyses.analysis_id"), index=True)
+    
+    # Analysis configuration
+    analysts = Column(JSON)  # List of analysts used
+    research_depth = Column(Integer, default=1)
+    llm_config = Column(JSON)
+    
+    # Agent state tracking
+    agent_status = Column(JSON)  # Dict of agent -> status
+    current_agent = Column(String(100))
+    
+    # Message and tool call history
+    messages = Column(JSON)  # List of (timestamp, type, content) tuples
+    tool_calls = Column(JSON)  # List of (timestamp, tool_name, args) tuples
+    
+    # Report sections
+    report_sections = Column(JSON)  # Dict of section -> content
+    current_report = Column(Text)
+    final_report = Column(Text)
+    
+    # Complete trading graph state
+    final_state = Column(JSON)  # Decision, confidence, reasoning
+    processed_signal = Column(JSON)  # Any processed signal data
+    
+    # Session metadata
+    last_interaction = Column(DateTime(timezone=True))
+    is_finalized = Column(Boolean, default=False, index=True)
+    
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    
+    # Relationships
+    user = relationship("User")
+    analysis = relationship("Analysis")
+    
+    # Indexes for common queries
+    __table_args__ = (
+        Index('idx_user_ticker', 'user_id', 'ticker'),
+        Index('idx_session_finalized', 'session_id', 'is_finalized'),
+        Index('idx_user_date', 'user_id', 'analysis_date'),
+        Index('idx_task_id', 'task_id'),
+        Index('idx_last_interaction', 'last_interaction'),
+    )
+    
+    def __repr__(self):
+        return f"<ConversationState(session_id='{self.session_id}', ticker='{self.ticker}', finalized={self.is_finalized})>"
+
+
+class ChatMessage(Base):
+    """Chat message model for storing individual chat messages."""
+    __tablename__ = "chat_messages"
+    
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    message_id = Column(String(255), unique=True, nullable=False, index=True)
+    session_id = Column(String(255), nullable=False, index=True)
+    user_id = Column(String(100), ForeignKey("users.user_id"), nullable=False, index=True)
+    
+    # Message content
+    role = Column(String(50), nullable=False)  # user, assistant, system, tool
+    content = Column(Text, nullable=False)
+    
+    # Message metadata
+    message_type = Column(String(50), default="text")  # text, tool_call, tool_response, system
+    message_metadata = Column(JSON)  # Additional message metadata
+    
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Relationships
+    user = relationship("User")
+    
+    # Indexes for common queries
+    __table_args__ = (
+        Index('idx_session_created', 'session_id', 'created_at'),
+        Index('idx_user_session', 'user_id', 'session_id'),
+        Index('idx_role_type', 'role', 'message_type'),
+    )
+    
+    def __repr__(self):
+        return f"<ChatMessage(message_id='{self.message_id}', role='{self.role}', type='{self.message_type}')>"
