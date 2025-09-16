@@ -1,7 +1,7 @@
 """
 数据服务模块
 提供股票数据获取、缓存管理和技术指标计算功能
-使用 Polygon.io 作为数据源，支持智能缓存机制
+支持多数据源：正式环境使用Yahoo Finance，开发环境使用Polygon API
 """
 
 import os
@@ -17,7 +17,7 @@ from pathlib import Path
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from tradingagents.dataflows.polygon_utils import PolygonUtils
+from tradingagents.dataflows.data_source_manager import DataSourceManager
 from tradingagents.dataflows.stockstats_polygon_utils import StockstatsPolygonUtils
 
 # 配置日志
@@ -39,13 +39,13 @@ class DataServices:
         """
         self.require_api_key = require_api_key
         
-        # 初始化PolygonUtils
+        # 初始化数据源管理器（根据环境自动选择数据源）
         try:
-            self.polygon_utils = PolygonUtils(require_api_key=require_api_key)
-            logger.info(f"PolygonUtils初始化成功，require_api_key={require_api_key}")
+            self.data_source_manager = DataSourceManager(require_api_key=require_api_key)
+            logger.info(f"数据源管理器初始化成功，当前数据源: {self.data_source_manager.current_data_source}")
         except Exception as e:
-            logger.warning(f"初始化PolygonUtils失败: {e}")
-            self.polygon_utils = None
+            logger.error(f"初始化数据源管理器失败: {e}")
+            raise
         
         # 初始化StockstatsPolygonUtils
         self.stockstats_utils = StockstatsPolygonUtils()
@@ -132,12 +132,12 @@ class DataServices:
             pd.DataFrame: 股票数据
         """
         try:
-            if self.polygon_utils is None:
-                logger.warning("PolygonUtils未初始化，无法获取数据")
+            if self.data_source_manager is None:
+                logger.warning("数据源管理器未初始化，无法获取数据")
                 return pd.DataFrame()
             
-            # 使用 PolygonUtils 获取窗口期数据（完全使用缓存，不联网）
-            data = self.polygon_utils.get_stock_data_window_cached(
+            # 使用数据源管理器获取窗口期数据（完全使用缓存，不联网）
+            data = self.data_source_manager.get_stock_data_window_cached(
                 symbol=symbol,
                 curr_date=curr_date,
                 look_back_days=look_back_days,
@@ -342,5 +342,29 @@ class DataServices:
             return True
         except ValueError:
             return False
+    
+    def get_data_source_status(self) -> Dict:
+        """
+        获取数据源状态信息
+        
+        Returns:
+            Dict: 数据源状态信息
+        """
+        try:
+            if self.data_source_manager:
+                return self.data_source_manager.get_status()
+            else:
+                return {
+                    "error": "数据源管理器未初始化",
+                    "current_data_source": None,
+                    "environment": "unknown"
+                }
+        except Exception as e:
+            logger.error(f"获取数据源状态失败: {e}")
+            return {
+                "error": str(e),
+                "current_data_source": None,
+                "environment": "unknown"
+            }
 
 

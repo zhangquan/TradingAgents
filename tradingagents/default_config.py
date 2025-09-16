@@ -22,6 +22,11 @@ DEFAULT_CONFIG = {
     # Language settings
     "default_language": os.getenv("DEFAULT_LANGUAGE", "en-US"),
     "report_language": os.getenv("REPORT_LANGUAGE", "auto"),  # auto, en-US, zh-CN, etc.
+    # Environment and Data Source Configuration
+    "environment": os.getenv("ENVIRONMENT", "development"),
+    "data_source": os.getenv("DATA_SOURCE", ""),  # Empty means auto-detect based on environment
+    "require_api_key": os.getenv("REQUIRE_API_KEY", "false").lower() == "true",
+    
     # API Keys - all loaded from environment variables
     "api_keys": {
         "polygon": os.getenv("POLYGON_API_KEY", ""),

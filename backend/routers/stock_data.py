@@ -441,12 +441,27 @@ async def health_check():
     """股票数据服务健康检查"""
     try:
         available_stocks = data_service.get_available_stocks()
+        data_source_status = data_service.get_data_source_status()
         return {
             "status": "healthy",
             "available_stocks_count": len(available_stocks),
+            "data_source": data_source_status,
             "timestamp": datetime.now().isoformat(),
             "service": "stock-data"
         }
     except Exception as e:
         logger.error(f"健康检查失败: {e}")
         raise HTTPException(status_code=503, detail=f"Service unhealthy: {str(e)}")
+
+@router.get("/data-source-status")
+async def get_data_source_status():
+    """获取数据源状态信息"""
+    try:
+        status = data_service.get_data_source_status()
+        return {
+            "data_source_status": status,
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"获取数据源状态失败: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
