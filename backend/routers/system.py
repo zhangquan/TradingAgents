@@ -6,6 +6,7 @@ import os
 from datetime import datetime
 
 from backend.database.storage_service import DatabaseStorage
+from tradingagents.agents.utils.language_utils import normalize_language_code, SUPPORTED_LANGUAGES
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -76,9 +77,19 @@ async def update_user_preferences(preferences: UserPreferencesRequest, request: 
         if preferences.notification_settings:
             pref_updates["notification_settings"] = preferences.notification_settings
         if preferences.default_language:
-            pref_updates["default_language"] = preferences.default_language
+            # Validate and normalize language code
+            normalized_lang = normalize_language_code(preferences.default_language)
+            if normalized_lang not in SUPPORTED_LANGUAGES:
+                logger.warning(f"Unsupported language code: {preferences.default_language}, using en-US")
+                normalized_lang = "en-US"
+            pref_updates["default_language"] = normalized_lang
         if preferences.report_language:
-            pref_updates["report_language"] = preferences.report_language
+            # Validate and normalize language code
+            normalized_lang = normalize_language_code(preferences.report_language)
+            if normalized_lang not in SUPPORTED_LANGUAGES:
+                logger.warning(f"Unsupported language code: {preferences.report_language}, using en-US")
+                normalized_lang = "en-US"
+            pref_updates["report_language"] = normalized_lang
         
         # If no explicit language preferences are provided, try to use Accept-Language header
         if not preferences.default_language and not preferences.report_language:
@@ -115,6 +126,16 @@ async def get_available_analysts():
             {"value": "news", "label": "News Analyst"},
             {"value": "fundamentals", "label": "Fundamentals Analyst"}
         ]
+    }
+
+@router.get("/languages")
+async def get_supported_languages():
+    """Get list of supported languages"""
+    return {
+        "languages": [
+            {"code": code, "name": name} for code, name in SUPPORTED_LANGUAGES.items()
+        ],
+        "default": "en-US"
     }
 
 @router.get("/models")

@@ -116,6 +116,9 @@ class AnalysisRunnerService:
             "zh-CN": "zh-CN",
             "zh-TW": "zh-TW", 
             "zh": "zh-CN",
+            "zh-HK": "zh-TW",
+            "zh-Hant": "zh-TW",
+            "zh-Hans": "zh-CN",
             "en-US": "en-US",
             "en-GB": "en-US",
             "en": "en-US",
@@ -129,6 +132,17 @@ class AnalysisRunnerService:
             "de-DE": "de-DE",
             "es": "es-ES",
             "es-ES": "es-ES",
+            "pt": "pt-BR",
+            "pt-BR": "pt-BR",
+            "pt-PT": "pt-BR",
+            "it": "it-IT",
+            "it-IT": "it-IT",
+            "ru": "ru-RU",
+            "ru-RU": "ru-RU",
+            "ar": "ar-SA",
+            "ar-SA": "ar-SA",
+            "hi": "hi-IN",
+            "hi-IN": "hi-IN"
         }
         
         return language_map.get(primary_lang, "en-US")

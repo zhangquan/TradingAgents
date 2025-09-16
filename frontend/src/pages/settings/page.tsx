@@ -342,6 +342,11 @@ export default function SettingsPage() {
                         <SelectItem value="fr-FR">Français</SelectItem>
                         <SelectItem value="de-DE">Deutsch</SelectItem>
                         <SelectItem value="es-ES">Español</SelectItem>
+                        <SelectItem value="pt-BR">Português (Brasil)</SelectItem>
+                        <SelectItem value="it-IT">Italiano</SelectItem>
+                        <SelectItem value="ru-RU">Русский</SelectItem>
+                        <SelectItem value="ar-SA">العربية</SelectItem>
+                        <SelectItem value="hi-IN">हिन्दी</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -364,6 +369,11 @@ export default function SettingsPage() {
                         <SelectItem value="fr-FR">Français</SelectItem>
                         <SelectItem value="de-DE">Deutsch</SelectItem>
                         <SelectItem value="es-ES">Español</SelectItem>
+                        <SelectItem value="pt-BR">Português (Brasil)</SelectItem>
+                        <SelectItem value="it-IT">Italiano</SelectItem>
+                        <SelectItem value="ru-RU">Русский</SelectItem>
+                        <SelectItem value="ar-SA">العربية</SelectItem>
+                        <SelectItem value="hi-IN">हिन्दी</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
