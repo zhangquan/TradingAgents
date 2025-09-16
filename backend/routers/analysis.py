@@ -210,8 +210,10 @@ async def get_analysis(analysis_id: str):
 async def create_scheduled_analysis(request: ScheduledAnalysisRequest, http_request: Request):
     """Create a scheduled analysis task"""
     try:
-        # Extract language preference from headers
-        accept_language = http_request.headers.get("Accept-Language", "en-US")
+        # Extract language preference from headers using enhanced language detection
+        from tradingagents.agents.utils.language_utils import detect_language_from_accept_header
+        accept_language_header = http_request.headers.get("Accept-Language", "en-US")
+        accept_language = detect_language_from_accept_header(accept_language_header)
         
         # Step 1: Create task data in analysis service first
         task_data = analysis_service.create_scheduled_task(
