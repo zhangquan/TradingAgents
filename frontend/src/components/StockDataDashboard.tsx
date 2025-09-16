@@ -196,6 +196,7 @@ export default function StockDataDashboard() {
   }
 
   const formatPrice = (price: number) => {
+    if(!price) return ''
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
@@ -205,6 +206,7 @@ export default function StockDataDashboard() {
   }
 
   const formatChange = (change: number, isPercent: boolean = false) => {
+     if(!change) return ''
     const formatted = isPercent 
       ? `${change > 0 ? '+' : ''}${change.toFixed(2)}%`
       : `${change > 0 ? '+' : ''}${formatPrice(change)}`
@@ -218,6 +220,7 @@ export default function StockDataDashboard() {
   }
 
   const formatVolume = (volume: number) => {
+    if(!volume)return;
     if (volume >= 1_000_000) {
       return `${(volume / 1_000_000).toFixed(1)}M`
     } else if (volume >= 1_000) {
