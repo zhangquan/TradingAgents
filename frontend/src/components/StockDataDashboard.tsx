@@ -399,10 +399,10 @@ export default function StockDataDashboard() {
                                 <h3 className="font-bold text-lg text-gray-900 truncate">{stock.symbol}</h3>
                                 <div className="flex items-baseline gap-2 mt-1">
                                   <span className="text-lg font-semibold text-gray-900">
-                                    {formatPrice(stock.summary.price_info.current_price)}
+                                    {formatPrice(stock.summary?.price_info?.current_price)}
                                   </span>
                                   <div className="text-sm">
-                                    {formatChange(stock.summary.price_info.price_change_pct, true)}
+                                    {formatChange(stock.summary?.price_info?.price_change_pct, true)}
                                   </div>
                                 </div>
                               </div>
