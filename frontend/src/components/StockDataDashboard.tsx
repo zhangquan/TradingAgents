@@ -439,11 +439,11 @@ export default function StockDataDashboard() {
                                 <div className="flex items-center gap-2">
                                   <span className="text-gray-500">区间</span>
                                   <span className="font-medium text-gray-700">
-                                    {formatPrice(stock.summary.price_info.low_price)}
+                                    {formatPrice(stock.summary?.price_info?.low_price)}
                                   </span>
                                   <span className="text-gray-400">-</span>
                                   <span className="font-medium text-gray-700">
-                                    {formatPrice(stock.summary.price_info.high_price)}
+                                    {formatPrice(stock.summary?.price_info?.high_price)}
                                   </span>
                                 </div>
                                 <div className="text-xs text-gray-500">
@@ -455,7 +455,7 @@ export default function StockDataDashboard() {
                               <div className="flex justify-between items-center text-xs text-gray-500">
                                 <span>成交量</span>
                                 <span className="font-medium">
-                                  {formatVolume(stock.summary.volume_info.latest_volume)}
+                                  {formatVolume(stock.summary?.volume_info?.latest_volume)}
                                 </span>
                               </div>
                             </div>
