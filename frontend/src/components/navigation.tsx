@@ -99,7 +99,7 @@ export function Navigation() {
                     onClick={() => setIsOpen(false)}
                   >
                     <FileText className="h-4 w-4 mr-2" />
-                    快速查看报告
+                    报告广场
                   </Button>
                 }
               />
