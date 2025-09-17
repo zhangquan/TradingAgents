@@ -10,5 +10,4 @@ eval_data/
 node_modules/
 results
 logs
-backend/static
 frontend/dist/
