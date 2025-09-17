@@ -66,8 +66,12 @@ class GraphSetup:
         tool_nodes = {}
 
         if "market" in selected_analysts:
+            # Create configurable data toolkit based on environment
+            from tradingagents.agents.utils.configurable_data_toolkit import create_data_toolkit
+            data_toolkit = create_data_toolkit(self.config)
+            
             analyst_nodes["market"] = create_market_analyst(
-                self.quick_thinking_llm, self.toolkit, self.polygon_toolkit, self.config
+                self.quick_thinking_llm, self.toolkit, data_toolkit, self.config
             )
             delete_nodes["market"] = create_msg_delete()
             tool_nodes["market"] = self.tool_nodes["market"]
@@ -80,8 +84,12 @@ class GraphSetup:
             tool_nodes["social"] = self.tool_nodes["social"]
 
         if "news" in selected_analysts:
+            # Create configurable data toolkit for news analyst too if needed
+            from tradingagents.agents.utils.configurable_data_toolkit import create_data_toolkit
+            data_toolkit = create_data_toolkit(self.config)
+            
             analyst_nodes["news"] = create_news_analyst(
-                self.quick_thinking_llm, self.toolkit, self.polygon_toolkit, self.config
+                self.quick_thinking_llm, self.toolkit, data_toolkit, self.config
             )
             delete_nodes["news"] = create_msg_delete()
             tool_nodes["news"] = self.tool_nodes["news"]

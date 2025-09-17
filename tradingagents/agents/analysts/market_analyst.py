@@ -4,7 +4,7 @@ import json
 from tradingagents.agents.utils.language_utils import get_language_instruction
 
 
-def create_market_analyst(llm, toolkit, polygon_toolkit, config=None):
+def create_market_analyst(llm, toolkit, data_toolkit=None, config=None):
 
     def market_analyst_node(state):
         current_date = state["trade_date"]
@@ -16,21 +16,36 @@ def create_market_analyst(llm, toolkit, polygon_toolkit, config=None):
         report_language = effective_config.get("report_language", "en-US")
         language_instruction = get_language_instruction(report_language)
 
-        if toolkit.config["online_tools"]:
+        # Use data_toolkit if provided, otherwise fall back to polygon_toolkit for backward compatibility
+        if data_toolkit:
             tools = [
-                # toolkit.get_YFin_data_online,
-                # toolkit.get_stockstats_indicators_report_online,
-                polygon_toolkit.get_polygon_data_window,
-                polygon_toolkit.get_stockstats_indicators_report_window,
-
+                data_toolkit.get_stock_data_window,
+                data_toolkit.get_stockstats_indicators_report_window,
             ]
         else:
-            tools = [
-                # toolkit.get_YFin_data,
-                # toolkit.get_stockstats_indicators_report,
-                polygon_toolkit.get_polygon_data_window,
-                polygon_toolkit.get_stockstats_indicators_report_window,
-            ]
+            # Backward compatibility with polygon_toolkit
+            if hasattr(toolkit, 'polygon_toolkit'):
+                polygon_toolkit = toolkit.polygon_toolkit
+            else:
+                # If no data toolkit provided, create a default one
+                from tradingagents.agents.utils.configurable_data_toolkit import create_data_toolkit
+                data_toolkit = create_data_toolkit(config)
+                tools = [
+                    data_toolkit.get_stock_data_window,
+                    data_toolkit.get_stockstats_indicators_report_window,
+                ]
+            
+            if 'polygon_toolkit' in locals():
+                if toolkit.config["online_tools"]:
+                    tools = [
+                        polygon_toolkit.get_polygon_data_window,
+                        polygon_toolkit.get_stockstats_indicators_report_window,
+                    ]
+                else:
+                    tools = [
+                        polygon_toolkit.get_polygon_data_window,
+                        polygon_toolkit.get_stockstats_indicators_report_window,
+                    ]
 
         system_message = (
             """You are a trading assistant tasked with analyzing financial markets. Your role is to select the **most relevant indicators** for a given market condition or trading strategy from the following list. The goal is to choose up to **8 indicators** that provide complementary insights without redundancy. Categories and each category's indicators are:

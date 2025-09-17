@@ -4,7 +4,7 @@ import json
 from tradingagents.agents.utils.language_utils import get_language_instruction
 
 
-def create_news_analyst(llm, toolkit, polygon_toolkit, config=None):
+def create_news_analyst(llm, toolkit, data_toolkit=None, config=None):
     def news_analyst_node(state):
         current_date = state["trade_date"]
         ticker = state["company_of_interest"]

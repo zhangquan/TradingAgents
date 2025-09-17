@@ -28,6 +28,7 @@ logger = logging.getLogger(__name__)
 class DataServices:
     """
     数据服务类，提供股票数据获取和技术指标计算功能
+    使用 Polygon.io 作为数据源，支持智能缓存机制
     """
     
     def __init__(self, require_api_key: bool = False):

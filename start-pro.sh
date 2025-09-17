@@ -3,6 +3,12 @@
 echo "🚀 Starting TradingAgents Production Environment"
 echo "================================================"
 
+# Set production environment variables
+export ENVIRONMENT=pro
+export DATA_PROVIDER=yahoo
+echo "📊 Environment: $ENVIRONMENT"
+echo "🔧 Data Provider: $DATA_PROVIDER"
+
 # Create logs directory if it doesn't exist
 mkdir -p logs
 
