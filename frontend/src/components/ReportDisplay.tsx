@@ -12,8 +12,7 @@ import {
   Clock
 } from 'lucide-react'
 import { MarkdownRenderer } from './MarkdownRenderer'
-import { format, parseISO } from 'date-fns'
-import { zhCN } from 'date-fns/locale'
+import { formatRelativeTime } from '@/lib/utils'
 
 interface ReportData {
   report_id?: string
@@ -25,6 +24,10 @@ interface ReportData {
   status?: string
   created_at?: string
   updated_at?: string
+  execution_started_at?: string
+  execution_completed_at?: string
+  execution_duration_seconds?: number
+  execution_duration_formatted?: string
 }
 
 interface ReportDisplayProps {
@@ -85,17 +88,7 @@ export function ReportDisplay({
     return labels[status] || status
   }
 
-  const formatDate = (dateStr: string) => {
-    try {
-      let dateISO = dateStr
-      if (!dateStr.includes('Z') && !dateStr.includes('+') && !dateStr.includes('-', 10)) {
-        dateISO = dateStr + 'Z'
-      }
-      return format(parseISO(dateISO), 'yyyy年MM月dd日 HH:mm', { locale: zhCN })
-    } catch {
-      return dateStr
-    }
-  }
+  // 使用统一的时间工具函数
 
   const renderSections = () => {
     if (!reportData.sections || typeof reportData.sections !== 'object') {
@@ -186,7 +179,13 @@ export function ReportDisplay({
                 {reportData.created_at && (
                   <div className="flex items-center space-x-1">
                     <Clock className="h-4 w-4" />
-                    <span className="text-sm">{formatDate(reportData.created_at)}</span>
+                    <span className="text-sm">{formatRelativeTime(reportData.created_at)}</span>
+                  </div>
+                )}
+                {reportData.execution_duration_formatted && (
+                  <div className="flex items-center space-x-1">
+                    <TrendingUp className="h-4 w-4" />
+                    <span className="text-sm">执行时长: {reportData.execution_duration_formatted}</span>
                   </div>
                 )}
               </div>

@@ -407,6 +407,14 @@ export function AnalysisReportsManager({ initialTicker = '' }: AnalysisReportsMa
                               </div>
                             </div>
                           )}
+                          {report.execution_duration_formatted && (
+                            <div className="flex items-center gap-2">
+                              <Clock className="h-4 w-4 text-blue-500" />
+                              <span className="text-xs text-blue-600">
+                                执行时长: {report.execution_duration_formatted}
+                              </span>
+                            </div>
+                          )}
                           {report.status && (
                             <div className="flex items-center gap-2">
                               {report.status === 'generated' ? (

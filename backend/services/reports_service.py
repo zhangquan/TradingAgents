@@ -21,6 +21,25 @@ class ReportsService:
         """Initialize reports service with database storage."""
         self.storage = DatabaseStorage()
     
+    def _format_duration(self, duration_seconds: float) -> str:
+        """Format duration in seconds to human-readable string."""
+        if duration_seconds is None:
+            return None
+        
+        if duration_seconds < 1:
+            return f"{duration_seconds:.2f}s"
+        elif duration_seconds < 60:
+            return f"{duration_seconds:.1f}s"
+        elif duration_seconds < 3600:
+            minutes = int(duration_seconds // 60)
+            seconds = duration_seconds % 60
+            return f"{minutes}m {seconds:.1f}s"
+        else:
+            hours = int(duration_seconds // 3600)
+            minutes = int((duration_seconds % 3600) // 60)
+            seconds = duration_seconds % 60
+            return f"{hours}h {minutes}m {seconds:.1f}s"
+    
     # Core Report Management
     def create_unified_report(self, 
                              analysis_id: str, 
@@ -106,7 +125,12 @@ class ReportsService:
                 "sections_count": len(report.get("sections", {})) if report.get("sections") else 0,
                 "has_investment_plan": "investment_plan" in report.get("sections", {}),
                 "has_market_report": "market_report" in report.get("sections", {}),
-                "has_trade_decision": "final_trade_decision" in report.get("sections", {})
+                "has_trade_decision": "final_trade_decision" in report.get("sections", {}),
+                # Execution timing information
+                "execution_started_at": report.get("analysis_started_at"),
+                "execution_completed_at": report.get("analysis_completed_at"),
+                "execution_duration_seconds": report.get("analysis_duration_seconds"),
+                "execution_duration_formatted": self._format_duration(report.get("analysis_duration_seconds"))
             }
             
             return enhanced_report
@@ -168,7 +192,12 @@ class ReportsService:
                     # Additional computed fields
                     "has_investment_plan": "investment_plan" in report.get("sections", {}),
                     "has_market_report": "market_report" in report.get("sections", {}),
-                    "has_trade_decision": "final_trade_decision" in report.get("sections", {})
+                    "has_trade_decision": "final_trade_decision" in report.get("sections", {}),
+                    # Execution timing information
+                    "execution_started_at": report.get("analysis_started_at"),
+                    "execution_completed_at": report.get("analysis_completed_at"),
+                    "execution_duration_seconds": report.get("analysis_duration_seconds"),
+                    "execution_duration_formatted": self._format_duration(report.get("analysis_duration_seconds"))
                 }
                 
                 enhanced_reports.append(enhanced_report)
@@ -224,7 +253,12 @@ class ReportsService:
                     "status": report["status"],
                     "created_at": report["created_at"],
                     "updated_at": report["updated_at"],
-                    "in_watchlist": self.storage.is_symbol_in_watchlist(user_id, report["ticker"])
+                    "in_watchlist": self.storage.is_symbol_in_watchlist(user_id, report["ticker"]),
+                    # Execution timing information
+                    "execution_started_at": report.get("analysis_started_at"),
+                    "execution_completed_at": report.get("analysis_completed_at"),
+                    "execution_duration_seconds": report.get("analysis_duration_seconds"),
+                    "execution_duration_formatted": self._format_duration(report.get("analysis_duration_seconds"))
                 }
                 enhanced_reports.append(enhanced_report)
             
@@ -463,6 +497,11 @@ class ReportsService:
             for report in recent_reports:
                 report["in_watchlist"] = self.storage.is_symbol_in_watchlist(user_id, report["ticker"])
                 report["sections_count"] = len(report.get("sections", {}))
+                # Add execution timing information
+                report["execution_started_at"] = report.get("analysis_started_at")
+                report["execution_completed_at"] = report.get("analysis_completed_at")
+                report["execution_duration_seconds"] = report.get("analysis_duration_seconds")
+                report["execution_duration_formatted"] = self._format_duration(report.get("analysis_duration_seconds"))
             
             logger.info(f"Retrieved {len(recent_reports)} recent reports for user {user_id} (last {days} days)")
             return recent_reports

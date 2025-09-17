@@ -9,6 +9,7 @@ import json
 import os
 import uuid
 import asyncio
+import time
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, List, Optional, Tuple
@@ -192,6 +193,10 @@ class AnalysisRunnerService:
         Returns:
             Dict containing analysis results and session_id for chat recovery
         """
+        # Record analysis start time
+        analysis_start_time = datetime.now()
+        start_timestamp = time.time()
+        
         # Update task status
         self.storage.update_scheduled_task_status(task_id, "running")
         
@@ -233,13 +238,18 @@ class AnalysisRunnerService:
                 # Run standard analysis
                 final_state, processed_signal = trading_graph.propagate(ticker, analysis_date)
             
+            # Calculate execution duration
+            analysis_end_time = datetime.now()
+            end_timestamp = time.time()
+            execution_duration = end_timestamp - start_timestamp
+            
             # Extract reports from final state
             reports = self.extract_reports_from_state(final_state)
             
             # Generate analysis_id for further operations
             analysis_id = str(uuid.uuid4())
             
-            # Save unified report with all sections
+            # Save unified report with all sections and timing information
             non_empty_reports = {report_type: content for report_type, content in reports.items() if content}
             if non_empty_reports:
                 self.storage.save_unified_report(
@@ -248,7 +258,10 @@ class AnalysisRunnerService:
                     ticker=ticker,
                     sections=non_empty_reports,
                     title=f"{ticker.upper()} Complete Analysis Report",
-                    session_id=session_id if enable_memory else None
+                    session_id=session_id if enable_memory else None,
+                    analysis_started_at=analysis_start_time,
+                    analysis_completed_at=analysis_end_time,
+                    analysis_duration_seconds=execution_duration
                 )
             
             # Finalize conversation memory
@@ -326,10 +339,13 @@ class AnalysisRunnerService:
         Raises:
             Exception: If analysis fails
         """
+        # Record analysis start time
+        analysis_start_time = datetime.now()
+        start_timestamp = time.time()
+        
         # Update task status
         self.storage.update_scheduled_task_status(task_id, "running")
         
- 
         # Get language from task data if available
         task_data = self.storage.get_scheduled_task(task_id)
         language = task_data.get("language", "en-US") if task_data else "en-US"
@@ -346,15 +362,18 @@ class AnalysisRunnerService:
         # Run the actual analysis (synchronous)
         final_state, processed_signal = trading_graph.propagate(ticker, analysis_date)
         
+        # Calculate execution duration
+        analysis_end_time = datetime.now()
+        end_timestamp = time.time()
+        execution_duration = end_timestamp - start_timestamp
+        
         # Extract reports from final state
         reports = self.extract_reports_from_state(final_state)
-        
-
         
         # Generate analysis_id for further operations
         analysis_id = str(uuid.uuid4())
         
-        # Save unified report with all sections
+        # Save unified report with all sections and timing information
         # Filter out empty reports
         non_empty_reports = {report_type: content for report_type, content in reports.items() if content}
         if non_empty_reports:
@@ -364,7 +383,10 @@ class AnalysisRunnerService:
                 ticker=ticker,
                 sections=non_empty_reports,
                 title=f"{ticker.upper()} Complete Analysis Report",
-                session_id=None  # No session for standard analysis
+                session_id=None,  # No session for standard analysis
+                analysis_started_at=analysis_start_time,
+                analysis_completed_at=analysis_end_time,
+                analysis_duration_seconds=execution_duration
             )
         
         # Create and store task results

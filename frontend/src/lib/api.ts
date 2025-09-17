@@ -139,6 +139,10 @@ export interface AnalysisReportItem {
   path?: string
   legacy?: boolean
   in_watchlist?: boolean
+  execution_started_at?: string
+  execution_completed_at?: string
+  execution_duration_seconds?: number
+  execution_duration_formatted?: string
 }
 
 export interface TaskInfo {
@@ -187,7 +191,8 @@ export interface ConversationSession {
   user_id: string
   ticker: string
   analysis_date: string
-  status: string
+  agent_status: { [key: string]: string }
+  is_finalized: boolean
   created_at: string
   updated_at: string
 }

@@ -247,7 +247,8 @@ class DatabaseStorage:
             return False
     
     # Report Management
-    def save_unified_report(self, analysis_id: str, user_id: str, ticker: str, sections: Dict[str, str], title: str = None, session_id: str = None) -> str:
+    def save_unified_report(self, analysis_id: str, user_id: str, ticker: str, sections: Dict[str, str], title: str = None, session_id: str = None,
+                           analysis_started_at: datetime = None, analysis_completed_at: datetime = None, analysis_duration_seconds: float = None) -> str:
         """Save a unified report with multiple sections for an analysis."""
         try:
             with self._get_session() as db:
@@ -262,6 +263,12 @@ class DatabaseStorage:
                     existing_report.title = title or existing_report.title
                     if session_id:
                         existing_report.session_id = session_id
+                    if analysis_started_at:
+                        existing_report.analysis_started_at = analysis_started_at
+                    if analysis_completed_at:
+                        existing_report.analysis_completed_at = analysis_completed_at
+                    if analysis_duration_seconds is not None:
+                        existing_report.analysis_duration_seconds = analysis_duration_seconds
                     existing_report.updated_at = datetime.now()
                     db.commit()
                     logger.info(f"Updated unified report: {existing_report.report_id} for analysis {analysis_id}")
@@ -279,6 +286,9 @@ class DatabaseStorage:
                         title=title or f"{ticker.upper()} Complete Analysis Report",
                         sections=sections,
                         session_id=session_id,
+                        analysis_started_at=analysis_started_at,
+                        analysis_completed_at=analysis_completed_at,
+                        analysis_duration_seconds=analysis_duration_seconds,
                         status="generated"
                     )
                     
@@ -1237,6 +1247,7 @@ class DatabaseStorage:
                         "analysis_id": state.analysis_id,
                         "current_agent": state.current_agent,
                         "is_finalized": state.is_finalized,
+                        "agent_status": state.agent_status if state.agent_status else {},
                         "last_interaction": state.last_interaction.isoformat() if state.last_interaction else None,
                         "created_at": state.created_at.isoformat() if state.created_at else None,
                         "updated_at": state.updated_at.isoformat() if state.updated_at else None

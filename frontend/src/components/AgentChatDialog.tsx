@@ -27,8 +27,7 @@ import {
 } from 'lucide-react'
 import { apiService, ChatMessage, ConversationDetail } from '@/lib/api'
 import { toast } from 'sonner'
-import { format, parseISO } from 'date-fns'
-import { zhCN } from 'date-fns/locale'
+import { formatTimestamp } from '@/lib/utils'
 import { MarkdownRenderer } from '@/components/MarkdownRenderer'
 
 interface AgentChatDialogProps {
@@ -119,13 +118,7 @@ export function AgentChatDialog({ open, onOpenChange, reportId, sessionId }: Age
     }
   }
 
-  const formatTimestamp = (timestamp: string) => {
-    try {
-      return format(parseISO(timestamp), 'HH:mm:ss', { locale: zhCN })
-    } catch {
-      return timestamp
-    }
-  }
+  // 使用统一的时间工具函数
 
   const renderAgentOverview = () => {
     if (!conversationData) return null
@@ -162,7 +155,7 @@ export function AgentChatDialog({ open, onOpenChange, reportId, sessionId }: Age
               <div>
                 <div className="text-sm text-gray-500">创建时间</div>
                 <div className="font-medium text-sm">
-                  {format(parseISO(session_info.created_at), 'yyyy-MM-dd HH:mm:ss', { locale: zhCN })}
+                  {formatTimestamp(session_info.created_at)}
                 </div>
               </div>
             </div>

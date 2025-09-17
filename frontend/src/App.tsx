@@ -11,6 +11,7 @@ import ReportsPage from '@/pages/reports/page'
 import ReportDetailPage from '@/pages/reports/page'
 import SettingsPage from '@/pages/settings/page'
 import WatchlistPage from '@/pages/watchlist/page'
+import SessionDetailPage from '@/pages/session/page'
 
 function App() {
   return (
@@ -20,11 +21,15 @@ function App() {
         <div className="p-6">
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/stocks/:symbol" element={<HomePage />} />
+            <Route path="/stocks/:symbol/session/:sessionId" element={<HomePage />} />
             <Route path="/admin" element={<AdminPage />} />
             <Route path="/analysis" element={<AnalysisPage />} />
             <Route path="/charts-demo" element={<ChartsPage />} />
             <Route path="/reports" element={<ReportsPage />} />
             <Route path="/reports/:id" element={<ReportDetailPage />} />
+            <Route path="/session/:sessionId" element={<SessionDetailPage />} />
+            <Route path="/session/:sessionId/from/:fromStock" element={<SessionDetailPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/watchlist" element={<WatchlistPage />} />
           </Routes>

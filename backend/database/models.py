@@ -57,6 +57,11 @@ class Analysis(Base):
     # Status
     status = Column(String(50), default="pending", index=True)
     
+    # Execution timing
+    started_at = Column(DateTime(timezone=True))
+    completed_at = Column(DateTime(timezone=True))
+    execution_duration_seconds = Column(Float)  # Execution duration in seconds
+    
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
@@ -102,6 +107,11 @@ class Report(Base):
     
     # Conversation memory link
     session_id = Column(String(255), nullable=True, index=True)  # Link to conversation session
+    
+    # Analysis execution metrics
+    analysis_started_at = Column(DateTime(timezone=True))
+    analysis_completed_at = Column(DateTime(timezone=True))  
+    analysis_duration_seconds = Column(Float)  # Total analysis execution time in seconds
     
     # Status
     status = Column(String(50), default="generated", index=True)  # generated, reviewed, archived

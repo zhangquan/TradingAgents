@@ -82,7 +82,6 @@ class ConversationState:
     # 元数据
     created_at: str = ""
     updated_at: str = ""
-    status: str = "active"  # active, completed, archived
 
 
 @dataclass
@@ -174,8 +173,7 @@ class ConversationMemoryService:
             final_state=None,
             processed_signal=None,
             created_at=timestamp,
-            updated_at=timestamp,
-            status="active"
+            updated_at=timestamp
         )
         
         # 保存到数据库
@@ -469,8 +467,7 @@ class ConversationMemoryService:
         try:
             updates = {
                 "final_state": final_state,
-                "processed_signal": processed_signal,
-                "status": "completed"
+                "processed_signal": processed_signal
             }
             
             # 确保所有agent状态都标记为完成
@@ -564,7 +561,6 @@ class ConversationMemoryService:
                     "session_id": state.session_id,
                     "ticker": state.ticker,
                     "analysis_date": state.analysis_date,
-                    "status": state.status,
                     "created_at": state.created_at,
                     "updated_at": state.updated_at
                 },

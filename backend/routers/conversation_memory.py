@@ -42,7 +42,8 @@ class ConversationListItem(BaseModel):
     session_id: str
     ticker: str
     analysis_date: str
-    status: str
+    agent_status: Dict[str, str]
+    is_finalized: bool
     created_at: str
     updated_at: str
 
@@ -131,7 +132,8 @@ async def list_conversations(
                 session_id=conv["session_id"],
                 ticker=conv["ticker"],
                 analysis_date=conv["analysis_date"],
-                status=conv["status"],
+                agent_status=conv.get("agent_status", {}),
+                is_finalized=conv.get("is_finalized", False),
                 created_at=conv["created_at"],
                 updated_at=conv["updated_at"]
             ))
