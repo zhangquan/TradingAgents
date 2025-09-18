@@ -26,6 +26,8 @@ class UserPreferencesRequest(BaseModel):
     # Language settings
     default_language: Optional[str] = None
     report_language: Optional[str] = None
+    # Timezone settings
+    timezone: Optional[str] = None
 
 @router.get("/config")
 async def get_config():
@@ -79,6 +81,8 @@ async def update_user_preferences(preferences: UserPreferencesRequest, request: 
             pref_updates["default_language"] = preferences.default_language
         if preferences.report_language:
             pref_updates["report_language"] = preferences.report_language
+        if preferences.timezone:
+            pref_updates["timezone"] = preferences.timezone
         
         # If no explicit language preferences are provided, try to use Accept-Language header
         if not preferences.default_language and not preferences.report_language:
@@ -103,6 +107,47 @@ async def update_user_preferences(preferences: UserPreferencesRequest, request: 
         return {"message": "User preferences updated successfully", "updated": list(pref_updates.keys())}
     except Exception as e:
         logger.error(f"Error updating preferences: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/timezone")
+async def get_user_timezone():
+    """Get user's timezone setting"""
+    try:
+        user_config = storage.get_user_config("demo_user")
+        timezone = user_config.get("timezone", "UTC") if user_config else "UTC"
+        return {"timezone": timezone}
+    except Exception as e:
+        logger.error(f"Error getting user timezone: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/timezone")
+async def set_user_timezone(timezone_data: dict):
+    """Set user's timezone setting"""
+    try:
+        timezone = timezone_data.get("timezone")
+        if not timezone:
+            raise HTTPException(status_code=400, detail="Timezone is required")
+        
+        # Validate timezone using pytz
+        import pytz
+        try:
+            pytz.timezone(timezone)
+        except pytz.exceptions.UnknownTimeZoneError:
+            raise HTTPException(status_code=400, detail=f"Invalid timezone: {timezone}")
+        
+        # Save timezone to user config
+        storage.save_user_config("demo_user", {"timezone": timezone})
+        
+        # Log system event
+        storage.log_system_event("timezone_updated", {
+            "new_timezone": timezone
+        })
+        
+        return {"message": "Timezone updated successfully", "timezone": timezone}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error setting user timezone: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/analysts")

@@ -59,7 +59,7 @@ class AnalysisService:
                               research_depth: int,
                               schedule_type: str,
                               schedule_time: str,
-                              timezone: str = "UTC",
+                              timezone: str = None,
                               schedule_date: Optional[str] = None,
                               cron_expression: Optional[str] = None,
                               enabled: bool = True,
@@ -95,6 +95,11 @@ class AnalysisService:
         
         # Validate schedule parameters
         self._validate_schedule_parameters(schedule_type, schedule_time, schedule_date, cron_expression)
+        
+        # Use user's timezone if not specified
+        if timezone is None:
+            user_config = self.storage.get_user_config(user_id)
+            timezone = user_config.get("timezone", "UTC") if user_config else "UTC"
         
         # Create task data for unified ScheduledTask model
         task_data = {

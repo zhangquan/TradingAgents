@@ -30,7 +30,7 @@ class ScheduledAnalysisRequest(BaseModel):
     schedule_time: str  # Time for execution (HH:MM format)
     schedule_date: Optional[str] = None  # Date for 'once' type (YYYY-MM-DD)
     cron_expression: Optional[str] = None  # For custom cron schedules
-    timezone: str = "UTC"
+    timezone: str = None
     enabled: bool = True
 
 class TaskResponse(BaseModel):

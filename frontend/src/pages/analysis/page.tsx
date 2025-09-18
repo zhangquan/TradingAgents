@@ -26,6 +26,7 @@ import {
   ScheduledTaskInfo 
 } from '@/lib/api'
 import { toast } from 'sonner'
+import { getUserTimeZone } from '@/lib/utils'
 
 export default function AnalysisPage() {
   const [scheduledTasks, setScheduledTasks] = useState<Record<string, ScheduledTaskInfo>>({})
@@ -46,7 +47,6 @@ export default function AnalysisPage() {
     research_depth: 1,
     schedule_type: 'daily',
     schedule_time: '09:00',
-    timezone: 'UTC',
     enabled: true
   })
 
@@ -57,7 +57,6 @@ export default function AnalysisPage() {
     research_depth: 1,
     schedule_type: 'daily',
     schedule_time: '09:00',
-    timezone: 'UTC',
     enabled: true
   })
 
@@ -179,7 +178,6 @@ export default function AnalysisPage() {
         research_depth: defaultConfig?.research_depth || 1,
         schedule_type: 'daily',
         schedule_time: '09:00',
-        timezone: 'UTC',
         enabled: true
       })
     } catch (error) {
@@ -208,7 +206,6 @@ export default function AnalysisPage() {
         research_depth: defaultConfig?.research_depth || 1,
         schedule_type: 'daily',
         schedule_time: '09:00',
-        timezone: 'UTC',
         enabled: true
       })
     } catch (error) {
