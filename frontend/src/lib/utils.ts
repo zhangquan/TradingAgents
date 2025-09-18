@@ -150,6 +150,28 @@ export function getUserTimeZone(): string {
 }
 
 /**
+ * 自动设置用户时区到服务器
+ * 在应用初始化时调用
+ */
+export async function autoSetUserTimezone() {
+  try {
+    const userTimezone = getUserTimeZone()
+    
+    // 检查当前服务器存储的时区
+    const { apiService } = await import('@/lib/api')
+    const currentConfig = await apiService.getUserTimezone()
+    
+    // 如果时区不同，更新服务器设置
+    if (currentConfig.timezone !== userTimezone) {
+      await apiService.setUserTimezone(userTimezone)
+      console.log(`Auto-updated user timezone to: ${userTimezone}`)
+    }
+  } catch (error) {
+    console.warn('Failed to auto-set user timezone:', error)
+  }
+}
+
+/**
  * 检查时间字符串是否为今天
  * @param dateStr - UTC时间字符串
  * @returns 是否为今天

@@ -1,6 +1,8 @@
 import { Routes, Route } from 'react-router-dom'
 import { Navigation } from '@/components/navigation'
 import { Toaster } from '@/components/ui/sonner'
+import { useEffect } from 'react'
+import { autoSetUserTimezone } from '@/lib/utils'
 
 // 导入页面组件
 import HomePage from '@/pages/page'
@@ -14,6 +16,11 @@ import WatchlistPage from '@/pages/watchlist/page'
 import SessionDetailPage from '@/pages/session/page'
 
 function App() {
+  // Auto-detect and set user timezone on app initialization
+  useEffect(() => {
+    autoSetUserTimezone()
+  }, [])
+
   return (
     <div className="flex h-full bg-gray-50">
       <Navigation />

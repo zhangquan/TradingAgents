@@ -52,7 +52,7 @@ export interface ScheduledAnalysisRequest {
   schedule_time: string  // Time for execution (HH:MM format)
   schedule_date?: string  // Date for 'once' type (YYYY-MM-DD)
   cron_expression?: string  // For custom cron schedules
-  timezone: string
+  timezone?: string
   enabled: boolean
 }
 
@@ -568,8 +568,20 @@ export const apiService = {
     notification_settings?: any
     default_language?: string
     report_language?: string
+    timezone?: string
   }) {
     const response = await api.post('/system/preferences', preferences)
+    return response.data
+  },
+
+  // Timezone management
+  async getUserTimezone(): Promise<{timezone: string}> {
+    const response = await api.get('/system/timezone')
+    return response.data
+  },
+
+  async setUserTimezone(timezone: string): Promise<any> {
+    const response = await api.post('/system/timezone', {timezone})
     return response.data
   },
 

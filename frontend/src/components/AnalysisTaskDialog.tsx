@@ -21,6 +21,7 @@ import {
   ScheduledAnalysisRequest 
 } from '@/lib/api'
 import { toast } from 'sonner'
+import { getUserTimeZone } from '@/lib/utils'
 
 interface AnalysisTaskDialogProps {
   open: boolean
@@ -53,7 +54,6 @@ export function AnalysisTaskDialog({
     research_depth: 1,
     schedule_type: 'once',
     schedule_time: '09:00',
-    timezone: 'UTC',
     enabled: true
   })
 
@@ -175,7 +175,6 @@ export function AnalysisTaskDialog({
         research_depth: defaultConfig?.research_depth || 1,
         schedule_type: 'once',
         schedule_time: '09:00',
-        timezone: 'UTC',
         enabled: true
       })
     } catch (error) {

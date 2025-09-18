@@ -32,6 +32,16 @@ class SchedulerService:
         # Initialize analysis runner service for analysis execution
         self.analysis_runner = AnalysisRunnerService()
     
+    def _get_user_timezone(self, user_id: str = "demo_user") -> str:
+        """Get user's timezone preference, fallback to UTC."""
+        try:
+            user_config = self.storage.get_user_config(user_id)
+            if user_config and "timezone" in user_config:
+                return user_config["timezone"]
+        except Exception as e:
+            logger.warning(f"Error getting user timezone: {e}")
+        return "UTC"
+    
     def start(self) -> None:
         """Start the scheduler service."""
         if not self._started:
