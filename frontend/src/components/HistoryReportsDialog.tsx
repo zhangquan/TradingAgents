@@ -21,7 +21,8 @@ import {
   X,
   ArrowLeft
 } from 'lucide-react'
-import { apiService, AnalysisReportItem } from '@/lib/api'
+import { reportsApi } from '@/api/reports'
+import { AnalysisReportItem } from '@/api/types'
 import { toast } from 'sonner'
 import {
   Dialog,
@@ -60,7 +61,7 @@ export function HistoryReportsDialog({
   const loadReports = async () => {
     try {
       setLoading(true)
-      const data = await apiService.getReports(
+      const data = await reportsApi.getReports(
         showWatchlistOnly, 
         tickerFilter || undefined, 
         reportTypeFilter && reportTypeFilter !== 'all' ? reportTypeFilter : undefined
@@ -83,10 +84,10 @@ export function HistoryReportsDialog({
       
       let reportData
       if (report.report_id) {
-        reportData = await apiService.getReportById(report.report_id)
+        reportData = await reportsApi.getReportById(report.report_id)
       } else {
         // Fallback to legacy format
-        reportData = await apiService.getReport(report.ticker, report.date)
+        reportData = await reportsApi.getReport(report.ticker, report.date)
       }
       
       // Transform legacy format to new format if needed

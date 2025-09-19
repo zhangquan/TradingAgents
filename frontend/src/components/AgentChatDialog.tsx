@@ -25,7 +25,8 @@ import {
   DollarSign,
   X
 } from 'lucide-react'
-import { apiService, ChatMessage, ConversationDetail } from '@/lib/api'
+import { useConversationStore } from '@/store/conversationStore'
+import { ChatMessage } from '@/api/types'
 import { toast } from 'sonner'
 import { formatTimestamp } from '@/lib/utils'
 import { MarkdownRenderer } from '@/components/MarkdownRenderer'
@@ -38,28 +39,44 @@ interface AgentChatDialogProps {
 }
 
 export function AgentChatDialog({ open, onOpenChange, reportId, sessionId }: AgentChatDialogProps) {
-  const [conversationData, setConversationData] = useState<ConversationDetail | null>(null)
-  const [loading, setLoading] = useState(false)
+  // Use conversation store
+  const { 
+    currentSession,
+    currentSessionId,
+    isLoading,
+    error,
+    restoreSession,
+    setCurrentSession,
+    clearError
+  } = useConversationStore()
+
   const [activeTab, setActiveTab] = useState('overview')
 
   useEffect(() => {
     if (open && sessionId) {
       loadConversationData()
+    } else if (!open && currentSessionId) {
+      // Clear session when dialog closes to avoid interference with other components
+      setCurrentSession(null)
     }
   }, [open, sessionId])
+
+  // Show error toast when store error changes
+  useEffect(() => {
+    if (error) {
+      toast.error('无法加载Agent对话数据: ' + error)
+      clearError()
+    }
+  }, [error, clearError])
 
   const loadConversationData = async () => {
     if (!sessionId) return
     
     try {
-      setLoading(true)
-      const data = await apiService.restoreConversationSession(sessionId)
-      setConversationData(data)
+      await restoreSession(sessionId)
     } catch (error) {
       console.error('Failed to load conversation data:', error)
-      toast.error('无法加载Agent对话数据')
-    } finally {
-      setLoading(false)
+      // Error is already handled by the store and useEffect above
     }
   }
 
@@ -121,9 +138,9 @@ export function AgentChatDialog({ open, onOpenChange, reportId, sessionId }: Age
   // 使用统一的时间工具函数
 
   const renderAgentOverview = () => {
-    if (!conversationData) return null
+    if (!currentSession) return null
 
-    const { session_info, agent_status, statistics } = conversationData
+    const { session_info, agent_status, statistics } = currentSession
 
     return (
       <div className="space-y-6">
@@ -220,12 +237,12 @@ export function AgentChatDialog({ open, onOpenChange, reportId, sessionId }: Age
   }
 
   const renderChatHistory = () => {
-    if (!conversationData?.chat_history) return null
+    if (!currentSession?.chat_history) return null
 
     return (
       <div className="h-[500px] overflow-y-auto pr-4">
         <div className="space-y-4">
-          {conversationData.chat_history.map((message, index) => (
+          {currentSession.chat_history.map((message, index) => (
             <div key={message.message_id || index} className="flex gap-3">
               <div className="flex-shrink-0 mt-1">
                 {getMessageIcon(message.role)}
@@ -263,9 +280,9 @@ export function AgentChatDialog({ open, onOpenChange, reportId, sessionId }: Age
   }
 
   const renderAnalysisReports = () => {
-    if (!conversationData?.reports?.sections) return null
+    if (!currentSession?.reports?.sections) return null
 
-    const sections = conversationData.reports.sections
+    const sections = currentSession.reports.sections
 
     return (
       <div className="space-y-4">
@@ -354,7 +371,7 @@ export function AgentChatDialog({ open, onOpenChange, reportId, sessionId }: Age
           </DialogDescription>
         </DialogHeader>
 
-        {loading ? (
+        {isLoading ? (
           <div className="flex items-center justify-center h-64">
             <Loader2 className="h-8 w-8 animate-spin" />
             <span className="ml-2">加载对话数据...</span>
@@ -395,7 +412,7 @@ export function AgentChatDialog({ open, onOpenChange, reportId, sessionId }: Age
         )}
 
         <div className="flex justify-between items-center pt-4 border-t">
-          <Button variant="outline" onClick={loadConversationData} disabled={loading}>
+          <Button variant="outline" onClick={loadConversationData} disabled={isLoading}>
             <RefreshCw className="h-4 w-4 mr-2" />
             刷新数据
           </Button>

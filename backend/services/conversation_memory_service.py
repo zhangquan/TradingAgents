@@ -77,7 +77,6 @@ class ConversationState:
     
     # 新增字段以匹配数据库模型
     task_id: Optional[str] = None
-    analysis_id: Optional[str] = None
     execution_type: str = "manual"  # manual, scheduled
     last_interaction: Optional[str] = None
     is_finalized: bool = False
@@ -551,6 +550,29 @@ class ConversationMemoryService:
         except Exception as e:
             logger.error(f"Error listing conversations for user {user_id}: {e}")
             return []
+    
+    def get_conversations_by_stock_and_user(self, user_id: str, ticker: str, limit: int = 20) -> List[Dict[str, Any]]:
+        """根据股票代码和用户ID获取对话列表"""
+        try:
+            return self.conversation_repo.get_conversations_by_stock_and_user(
+                user_id=user_id, 
+                ticker=ticker, 
+                limit=limit
+            )
+        except Exception as e:
+            logger.error(f"Error getting conversations for user {user_id} and ticker {ticker}: {e}")
+            return []
+    
+    def get_newest_conversation_by_stock(self, user_id: str, ticker: str) -> Optional[Dict[str, Any]]:
+        """根据股票代码和用户ID获取最新的对话"""
+        try:
+            return self.conversation_repo.get_newest_conversation_by_stock(
+                user_id=user_id,
+                ticker=ticker
+            )
+        except Exception as e:
+            logger.error(f"Error getting newest conversation for user {user_id} and ticker {ticker}: {e}")
+            return None
     
     def restore_conversation_for_chat(self, session_id: str) -> Optional[Dict[str, Any]]:
         """为chat界面恢复会话状态"""

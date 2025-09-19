@@ -11,7 +11,7 @@ def create_social_media_analyst(llm, toolkit, config=None):
         company_name = state["company_of_interest"]
         
         # Get language configuration - prefer passed config, fallback to toolkit.config
-        effective_config = config or toolkit.config
+        effective_config = config 
         report_language = effective_config.get("report_language", "en-US")
         language_instruction = get_language_instruction(report_language)
 

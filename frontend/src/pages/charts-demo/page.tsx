@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { BarChart3, TrendingUp, Activity } from 'lucide-react'
-import { apiService } from '@/lib/api'
+import { stockApi } from '@/api/stock'
 import { toast } from 'sonner'
 import EChartsCandlestick from '@/components/EChartsCandlestick'
 import MiniEChartsCandlestick from '@/components/MiniEChartsCandlestick'
@@ -46,7 +46,7 @@ export default function ChartsDemoPage() {
 
   const loadInitialData = async () => {
     try {
-      const stocksResponse = await apiService.getAvailableStocks()
+      const stocksResponse = await stockApi.getAvailableStocks()
       setAvailableStocks(stocksResponse.stocks || [])
       
       if (stocksResponse.stocks && stocksResponse.stocks.length > 0) {
@@ -62,7 +62,7 @@ export default function ChartsDemoPage() {
     try {
       setLoading(true)
       const currentDate = new Date().toISOString().split('T')[0]
-      const response = await apiService.getStockData(symbol, currentDate, 60)
+      const response = await stockApi.getStockData(symbol, currentDate, 60)
       
       if (response.data && Array.isArray(response.data)) {
         const chartData: ChartData[] = response.data.map(item => ({

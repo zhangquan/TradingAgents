@@ -16,7 +16,8 @@ import {
   AlertTriangle,
   XCircle
 } from 'lucide-react'
-import { apiService } from '@/lib/api'
+import { systemApi } from '@/api/system'
+import { healthCheck } from '@/api/index'
 
 interface SystemStatusProps {
   className?: string
@@ -49,8 +50,8 @@ export function SystemStatus({ className }: SystemStatusProps) {
       setRefreshing(true)
       
       const [healthResponse, systemStats] = await Promise.all([
-        apiService.health(),
-        apiService.getSystemStats()
+        healthCheck(),
+        systemApi.getSystemStats()
       ])
 
       // Determine overall system health

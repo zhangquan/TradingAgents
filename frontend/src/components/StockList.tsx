@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -8,6 +8,8 @@ import {
   ArrowDownIcon
 } from 'lucide-react'
 import SimpleLineChart from './SimpleLineChart'
+import { stockApi } from '@/api/stock'
+import { toast } from 'sonner'
 
 interface ChartData {
   date: string
@@ -42,18 +44,20 @@ interface StockItem {
 }
 
 interface StockListProps {
-  stocks: StockItem[]
   selectedStockSymbol: string | null
   onStockSelect: (symbol: string) => void
-  onLoadStockData: (symbols: string[]) => void
+  currentDate: string
 }
 
 export default function StockList({ 
-  stocks, 
   selectedStockSymbol, 
   onStockSelect,
-  onLoadStockData
+  currentDate
 }: StockListProps) {
+  
+  const [stocks, setStocks] = useState<StockItem[]>([])
+  const [availableStocks, setAvailableStocks] = useState<string[]>([])
+  const [loading, setLoading] = useState(true)
   
   const formatPrice = (price: number) => {
     if(!price) return ''
@@ -87,6 +91,166 @@ export default function StockList({
       return `${(volume / 1_000).toFixed(1)}K`
     }
     return volume.toString()
+  }
+
+  const loadStockData = async (symbols: string[]) => {
+    // 初始化股票项
+    const stockItems: StockItem[] = symbols.map(symbol => ({
+      symbol,
+      loading: true
+    }))
+    setStocks(stockItems)
+
+    // 为每个股票加载数据
+    const updatedStocks = await Promise.all(
+      symbols.map(async (symbol) => {
+        try {
+          // 只使用 getStockData 加载数据
+          const stockDataResponse = await stockApi.getStockData(symbol, currentDate, 30) // 加载30天的数据用于小图表
+
+          // 检查是否有数据
+          if (!stockDataResponse.data || !Array.isArray(stockDataResponse.data) || stockDataResponse.data.length === 0) {
+            return {
+              symbol,
+              loading: false,
+              noDataInfo: {
+                error: `没有找到 ${symbol} 的数据`,
+                error_type: 'no_data',
+                symbol: symbol,
+                requested_period: '30天',
+                requested_date: currentDate,
+                suggestions: ['检查股票代码是否正确', '尝试选择不同的日期范围'],
+                available_symbols: []
+              }
+            }
+          }
+
+          // 转换图表数据格式
+          const chartData: ChartData[] = stockDataResponse.data.map(item => ({
+            date: new Date(item.Date).toLocaleDateString('zh-CN', { 
+              month: 'short', 
+              day: 'numeric',
+              weekday: 'short'
+            }),
+            open: item.Open || 0,
+            high: item.High || 0,
+            low: item.Low || 0,
+            close: item.Close || 0,
+            volume: item.Volume || 0
+          }))
+
+          // 为简单折线图准备数据
+          const simpleChartData = chartData.map(item => ({
+            date: item.date,
+            close: item.close
+          }))
+
+          // 计算价格信息 - 使用最新和最早的数据
+          const latestData = stockDataResponse.data[stockDataResponse.data.length - 1]
+          const earliestData = stockDataResponse.data[0]
+          
+          const currentPrice = latestData?.Close || 0
+          const previousPrice = earliestData?.Close || 0
+          const priceChange = currentPrice - previousPrice
+          const priceChangePct = previousPrice > 0 ? (priceChange / previousPrice) * 100 : 0
+          const volume = latestData?.Volume || 0
+          const latestPriceDate = latestData?.Date ? new Date(latestData.Date).toLocaleDateString('zh-CN', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+          }) : ''
+
+          return {
+            symbol,
+            chartData,
+            simpleChartData,
+            currentPrice,
+            priceChange,
+            priceChangePct,
+            volume,
+            latestPriceDate,
+            loading: false
+          }
+        } catch (error) {
+          console.error(`加载 ${symbol} 数据失败:`, error)
+          return {
+            symbol,
+            loading: false,
+            error: '加载失败'
+          }
+        }
+      })
+    )
+
+    setStocks(updatedStocks)
+  }
+
+  // 加载可用股票列表
+  useEffect(() => {
+    const loadAvailableStocks = async () => {
+      try {
+        setLoading(true)
+        const response = await stockApi.getAvailableStocks()
+        const stockSymbols = response.stocks || []
+        setAvailableStocks(stockSymbols)
+        
+        // 初始化加载前5只股票
+        if (stockSymbols.length > 0) {
+          const stocksToLoad = stockSymbols.slice(0, 5)
+          const stockItems: StockItem[] = stocksToLoad.map((symbol: string) => ({
+            symbol,
+            loading: true
+          }))
+          setStocks(stockItems)
+        }
+      } catch (error) {
+        console.error('Failed to load available stocks:', error)
+        toast.error('加载股票列表失败')
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    loadAvailableStocks()
+  }, [])
+
+  // 自动加载处于 loading 状态的股票数据
+  useEffect(() => {
+    const loadingStocks = stocks.filter(stock => stock.loading)
+    if (loadingStocks.length > 0) {
+      const symbols = loadingStocks.map(stock => stock.symbol)
+      loadStockData(symbols)
+    }
+  }, [stocks.filter(stock => stock.loading).length]) // 只在 loading 股票数量变化时触发
+
+  if (loading && stocks.length === 0) {
+    return (
+      <div className="w-full lg:w-80 flex flex-col h-96 lg:h-auto flex-shrink-0">
+        <Card className="flex-1 min-h-0">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">股票列表</CardTitle>
+            <CardDescription>正在加载股票数据...</CardDescription>
+          </CardHeader>
+          <CardContent className="p-0 flex-1 min-h-0">
+            <div className="h-full overflow-y-auto px-4 pb-4">
+              <div className="space-y-3">
+                {[...Array(5)].map((_, i) => (
+                  <Card key={i} className="animate-pulse">
+                    <CardContent className="p-4">
+                      <div className="space-y-3">
+                        <div className="h-5 bg-gray-200 rounded" />
+                        <div className="h-12 bg-gray-200 rounded" />
+                        <div className="h-4 bg-gray-200 rounded" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   return (
@@ -157,7 +321,7 @@ export default function StockList({
                                   className="text-xs cursor-pointer hover:bg-blue-50"
                                   onClick={(e) => {
                                     e.stopPropagation()
-                                    onLoadStockData([symbol])
+                                    loadStockData([symbol])
                                   }}
                                 >
                                   {symbol}

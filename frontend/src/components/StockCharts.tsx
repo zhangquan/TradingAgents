@@ -12,7 +12,8 @@ import {
   Eye,
   RefreshCw
 } from 'lucide-react'
-import { apiService, StockDataResponse, TechnicalIndicatorResponse } from '@/lib/api'
+import { stockApi } from '@/api/stock'
+import { StockDataResponse, TechnicalIndicatorResponse } from '@/api/types'
 import { toast } from 'sonner'
 import EChartsCandlestick from './EChartsCandlestick'
 import EChartsWrapper from './EChartsWrapper'
@@ -82,11 +83,11 @@ export default function StockCharts({ symbol, currentDate, lookBackDays = 30 }: 
       
       // 并行加载股票数据和支持的指标
       const [stockResponse, indicatorsResponse] = await Promise.all([
-        apiService.getStockData(symbol, currentDate, lookBackDays).catch(e => {
+        stockApi.getStockData(symbol, currentDate, lookBackDays).catch(e => {
           console.error('获取股票数据失败:', e)
           return { data: [] }
         }),
-        apiService.getSupportedIndicators().catch(e => {
+        stockApi.getSupportedIndicators().catch(e => {
           console.error('获取支持的指标失败:', e)
           return { indicators: {} }
         })
@@ -145,7 +146,7 @@ export default function StockCharts({ symbol, currentDate, lookBackDays = 30 }: 
       const responses = await Promise.all(
         validIndicators.map(async (indicator) => {
           try {
-            const response = await apiService.getTechnicalIndicator(symbol, indicator, currentDate, lookBackDays)
+            const response = await stockApi.getTechnicalIndicator(symbol, indicator, currentDate, lookBackDays)
             return { indicator, response }
           } catch (error) {
             console.warn(`加载指标 ${indicator} 失败:`, error)

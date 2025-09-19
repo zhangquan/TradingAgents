@@ -18,7 +18,7 @@ import {
   getUserTimeZone,
   type UserPreferences
 } from '@/lib/utils'
-import { apiService } from '@/lib/api'
+import { systemApi } from '@/api/system'
 import { toast } from 'sonner'
 
 export function UserPreferencesSettings() {
@@ -39,7 +39,7 @@ export function UserPreferencesSettings() {
       setUserPreferences(preferences)
       
       // 同步到后端API，统一语言设置
-      await apiService.updateUserPreferences({
+      await systemApi.updateUserPreferences({
         default_language: preferences.language,
         // 确保AI报告使用相同的语言设置
         report_language: preferences.language

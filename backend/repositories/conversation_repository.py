@@ -57,7 +57,6 @@ class ConversationRepository(BaseRepository[ConversationState]):
                         ticker=ticker.upper(),
                         analysis_date=state_data.get("analysis_date"),
                         task_id=state_data.get("task_id"),
-                        analysis_id=state_data.get("analysis_id"),
                         analysts=state_data.get("analysts", []),
                         research_depth=state_data.get("research_depth", 1),
                         llm_config=state_data.get("llm_config", {}),
@@ -120,6 +119,44 @@ class ConversationRepository(BaseRepository[ConversationState]):
         except Exception as e:
             logger.error(f"Error listing conversation states for user {user_id}: {e}")
             return []
+    
+    def get_conversations_by_stock_and_user(self, user_id: str, ticker: str, 
+                                          limit: int = 50) -> List[Dict[str, Any]]:
+        """根据股票代码和用户ID获取对话列表"""
+        try:
+            with self._get_session() as db:
+                query = db.query(ConversationState).filter(
+                    and_(
+                        ConversationState.user_id == user_id,
+                        ConversationState.ticker == ticker.upper()
+                    )
+                )
+                
+                states = query.order_by(desc(ConversationState.last_interaction)).limit(limit).all()
+                
+                return [self._to_dict(state) for state in states]
+        except Exception as e:
+            logger.error(f"Error getting conversations for user {user_id} and ticker {ticker}: {e}")
+            return []
+    
+    def get_newest_conversation_by_stock(self, user_id: str, ticker: str) -> Optional[Dict[str, Any]]:
+        """根据股票代码和用户ID获取最新的对话"""
+        try:
+            with self._get_session() as db:
+                state = db.query(ConversationState).filter(
+                    and_(
+                        ConversationState.user_id == user_id,
+                        ConversationState.ticker == ticker.upper()
+                    )
+                ).order_by(desc(ConversationState.last_interaction)).first()
+                
+                if not state:
+                    return None
+                
+                return self._to_dict(state)
+        except Exception as e:
+            logger.error(f"Error getting newest conversation for user {user_id} and ticker {ticker}: {e}")
+            return None
     
     def finalize_conversation_state(self, session_id: str) -> bool:
         """标记对话状态为已完成"""
@@ -197,7 +234,6 @@ class ConversationRepository(BaseRepository[ConversationState]):
             "ticker": state.ticker,
             "analysis_date": state.analysis_date,
             "task_id": state.task_id,
-            "analysis_id": state.analysis_id,
             "analysts": state.analysts,
             "research_depth": state.research_depth,
             "llm_config": state.llm_config,
@@ -225,7 +261,6 @@ class ConversationRepository(BaseRepository[ConversationState]):
             "ticker": state.ticker,
             "analysis_date": state.analysis_date,
             "task_id": state.task_id,
-            "analysis_id": state.analysis_id,
             "current_agent": state.current_agent,
             "is_finalized": state.is_finalized,
             "execution_type": state.execution_type,

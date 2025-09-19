@@ -1,6 +1,7 @@
 
 import { useEffect, useState } from 'react'
-import { apiService, NotificationData } from '@/lib/api'
+import { notificationsApi } from '@/api/notifications'
+import { NotificationData } from '@/api/types'
 import { toast } from 'sonner'
 
 export function useNotifications() {
@@ -10,7 +11,7 @@ export function useNotifications() {
 
   const loadNotifications = async () => {
     try {
-      const response = await apiService.getNotifications(false, 50)
+      const response = await notificationsApi.getNotifications(false, 50)
       setNotifications(response.notifications)
       setUnreadCount(response.notifications.filter(n => !n.read).length)
     } catch (error) {
@@ -23,7 +24,7 @@ export function useNotifications() {
 
   const markAsRead = async (notificationId: string) => {
     try {
-      await apiService.markNotificationRead(notificationId)
+      await notificationsApi.markNotificationRead(notificationId)
       setNotifications(prev => 
         prev.map(n => 
           n.notification_id === notificationId 
@@ -45,7 +46,7 @@ export function useNotifications() {
       // Mark all unread notifications as read
       await Promise.all(
         unreadNotifications.map(n => 
-          apiService.markNotificationRead(n.notification_id)
+          notificationsApi.markNotificationRead(n.notification_id)
         )
       )
       

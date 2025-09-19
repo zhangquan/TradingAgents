@@ -26,7 +26,6 @@ class ScheduledAnalysisRequest(BaseModel):
     schedule_time: str  # Time for execution (HH:MM format)
     schedule_date: Optional[str] = None  # Date for 'once' type (YYYY-MM-DD)
     cron_expression: Optional[str] = None  # For custom cron schedules
-    timezone: str = "UTC"
     enabled: bool = True
 
 class TaskResponse(BaseModel):
@@ -51,15 +50,13 @@ class AnalysisResponse(BaseModel):
 
 @router.get("/tasks")
 async def list_tasks():
-    """Get list of all scheduled tasks (unified model)"""
+    """Get list of all scheduled tasks"""
     try:
         # Get all tasks from database storage
         all_tasks = analysis_service.list_scheduled_tasks(limit=100)
         
-        # Separate tasks by type and status
+        # Filter and format only scheduled tasks
         scheduled_tasks = {}
-        active_tasks = {}
-        completed_tasks = {}
         
         for task in all_tasks:
             task_id = task["task_id"]
@@ -77,27 +74,58 @@ async def list_tasks():
                     "schedule_time": task["schedule_time"],
                     "schedule_date": task.get("schedule_date"),
                     "cron_expression": task.get("cron_expression"),
-                    "timezone": task["timezone"],
                     "enabled": task["enabled"],
                     "created_at": task["created_at"],
                     "last_run": task.get("last_run"),
                     "execution_count": task.get("execution_count", 0),
                     "last_error": task.get("last_error")
                 }
-            else:
-                # These are immediate execution tasks
-                if task["status"] in ["created", "starting", "running"]:
-                    active_tasks[task_id] = task
-                elif task["status"] in ["completed", "failed", "error"]:
-                    completed_tasks[task_id] = task
         
-        return {
-            "scheduled_tasks": scheduled_tasks,
-            "active_tasks": active_tasks,
-            "completed_tasks": completed_tasks
-        }
+        return scheduled_tasks
     except Exception as e:
         logger.error(f"Error listing tasks: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/tasks/by-stock/{stock_symbol}")
+async def get_tasks_by_stock(stock_symbol: str, limit: int = 50):
+    """Get all tasks for a specific stock symbol"""
+    try:
+        # Get tasks filtered by ticker from analysis service
+        logger.info(f"Getting tasks for ticker: {stock_symbol.upper()}, limit: {limit}")
+        tasks = analysis_service.list_scheduled_tasks_by_ticker(ticker=stock_symbol.upper(), limit=limit)
+        logger.info(f"Retrieved {len(tasks)} tasks for ticker {stock_symbol.upper()}")
+        
+        # Format tasks for response
+        formatted_tasks = []
+        for task in tasks:
+            if task["schedule_type"] in ["once", "daily", "weekly", "monthly", "cron"]:
+                # Scheduled task format
+                formatted_tasks.append({
+                    "task_id": task["task_id"],
+                    "task_type": "scheduled",
+                    "status": "enabled" if task["enabled"] else "disabled",
+                    "ticker": task["ticker"],
+                    "analysts": task["analysts"],
+                    "research_depth": task["research_depth"],
+                    "schedule_type": task["schedule_type"],
+                    "schedule_time": task["schedule_time"],
+                    "schedule_date": task.get("schedule_date"),
+                    "cron_expression": task.get("cron_expression"),
+                    "enabled": task["enabled"],
+                    "created_at": task["created_at"],
+                    "last_run": task.get("last_run"),
+                    "execution_count": task.get("execution_count", 0),
+                    "last_error": task.get("last_error")
+                })
+        
+        return {
+            "ticker": stock_symbol.upper(),
+            "tasks": formatted_tasks,
+            "total_count": len(formatted_tasks)
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting tasks for stock {stock_symbol}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/tasks/{task_id}")
@@ -123,7 +151,6 @@ async def get_task_details(task_id: str):
                 "schedule_time": task["schedule_time"],
                 "schedule_date": task.get("schedule_date"),
                 "cron_expression": task.get("cron_expression"),
-                "timezone": task["timezone"],
                 "enabled": task["enabled"],
                 "created_at": task["created_at"],
                 "last_run": task.get("last_run"),
@@ -178,9 +205,6 @@ async def get_analysis_config():
 async def create_scheduled_analysis(request: ScheduledAnalysisRequest, http_request: Request):
     """Create a scheduled analysis task"""
     try:
-        # Extract language preference from headers
-        accept_language = http_request.headers.get("Accept-Language", "en-US")
-        
         # Step 1: Create task data in analysis service first
         task_data = analysis_service.create_scheduled_task(
             ticker=request.ticker,
@@ -188,12 +212,10 @@ async def create_scheduled_analysis(request: ScheduledAnalysisRequest, http_requ
             research_depth=request.research_depth,
             schedule_type=request.schedule_type,
             schedule_time=request.schedule_time,
-            timezone=request.timezone,
             schedule_date=request.schedule_date,
             cron_expression=request.cron_expression,
             enabled=request.enabled,
-            user_id="demo_user",
-            language=accept_language
+            user_id="demo_user"
         )
         
         schedule_id = task_data["task_id"]
@@ -282,7 +304,6 @@ async def update_task(task_id: str, request: ScheduledAnalysisRequest):
             "schedule_time": request.schedule_time,
             "schedule_date": request.schedule_date,
             "cron_expression": request.cron_expression,
-            "timezone": request.timezone,
             "enabled": request.enabled
         }
         

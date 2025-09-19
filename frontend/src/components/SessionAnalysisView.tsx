@@ -10,11 +10,12 @@ import {
   ArrowLeft,
   ExternalLink
 } from 'lucide-react'
-import { ConversationSession } from '@/lib/api'
-import { AnalysisTaskDialog } from './AnalysisTaskDialog'
+import { ConversationSession } from '@/api/types'
+
 import { TaskManagementDialog } from './TaskManagementDialog'
 import { HistoryConversationsDialog } from './HistoryConversationsDialog'
 import { AgentConversationViewer } from './AgentConversationViewer'
+import { useConversationStore } from '@/store/conversationStore'
 import { toast } from 'sonner'
 import { formatTimestamp, getConversationStatus } from '@/lib/utils'
 
@@ -24,7 +25,6 @@ interface SessionAnalysisViewProps {
   sessionId?: string | null
   
   // 会话状态
-  selectedConversation: ConversationSession | null
   isHistoryConversation?: boolean
   
   // 回调函数
@@ -46,7 +46,6 @@ interface SessionAnalysisViewProps {
 export function SessionAnalysisView({
   ticker,
   sessionId,
-  selectedConversation,
   isHistoryConversation = false,
   onHistoryConversationSelect,
   onRefreshData,
@@ -59,6 +58,24 @@ export function SessionAnalysisView({
   containerClassName = "mx-6"
 }: SessionAnalysisViewProps) {
   const navigate = useNavigate()
+  
+  // Get conversation data from store
+  const {
+    currentSession,
+    userId
+  } = useConversationStore()
+  
+  // Derive selectedConversation from currentSession
+  const selectedConversation = currentSession ? {
+    session_id: currentSession.session_info.session_id,
+    user_id: userId,
+    ticker: currentSession.session_info.ticker,
+    analysis_date: currentSession.session_info.analysis_date,
+    agent_status: currentSession.agent_status,
+    is_finalized: currentSession.session_info.status === 'completed',
+    created_at: currentSession.session_info.created_at,
+    updated_at: currentSession.session_info.updated_at
+  } as ConversationSession : null
   
   // Analysis task dialog states
   const [analysisDialogOpen, setAnalysisDialogOpen] = useState(false)
@@ -150,11 +167,7 @@ export function SessionAnalysisView({
                 </span>
               </div>
               <div className="flex items-center gap-2 flex-wrap">
-                <span className={`text-sm ${
-                  isHistoryConversation ? 'text-blue-600' : 'text-green-600'
-                }`}>
-                  {formatTimestamp(selectedConversation.created_at)}
-                </span>
+               
 
                 {/* Session ID 显示 - 可选择性点击跳转到详情页 */}
                 <Badge 
@@ -223,18 +236,7 @@ export function SessionAnalysisView({
         />
       </div>
 
-      {/* Analysis Task Dialog */}
-      {ticker && (
-        <AnalysisTaskDialog
-          open={analysisDialogOpen}
-          onOpenChange={setAnalysisDialogOpen}
-          ticker={ticker}
-          mode={analysisDialogMode}
-          taskId={editingTaskId || undefined}
-          onTaskCreated={handleTaskCreated}
-          onTaskUpdated={handleTaskUpdated}
-        />
-      )}
+     
 
       {/* Task Management Dialog */}
       {ticker && (

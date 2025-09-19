@@ -15,7 +15,8 @@ import {
 
 } from 'lucide-react'
 
-import { apiService, TaskInfo } from '@/lib/api'
+import { analysisApi } from '@/api/analysis'
+import { TaskInfo } from '@/api/types'
 import { toast } from 'sonner'
 
 interface TaskProgressProps {
@@ -34,7 +35,7 @@ export function TaskProgress({ taskId, onComplete, onCancel }: TaskProgressProps
   useEffect(() => {
     const loadTask = async () => {
       try {
-        const taskData = await apiService.getTaskProgress(taskId)
+        const taskData = await analysisApi.getTaskProgress(taskId)
         setTask(taskData)
         
         // Trigger completion callback if task is already completed

@@ -19,7 +19,10 @@ import {
   TrendingUp,
   User
 } from 'lucide-react'
-import { apiService, AnalysisConfig } from '@/lib/api'
+import { systemApi } from '@/api/system'
+import { analysisApi } from '@/api/analysis'
+import { healthCheck } from '@/api/index'
+import { AnalysisConfig } from '@/api/types'
 import { toast } from 'sonner'
 import { UserPreferencesSettings } from '@/components/UserPreferencesSettings'
 
@@ -52,7 +55,7 @@ export default function SettingsPage() {
 
   const loadModels = async () => {
     try {
-      const response = await apiService.getModels()
+      const response = await systemApi.getModels()
       setModels(response)
     } catch (error) {
       console.error('Failed to load models:', error)
@@ -61,7 +64,7 @@ export default function SettingsPage() {
 
   const loadAnalysts = async () => {
     try {
-      const response = await apiService.getAnalysts()
+      const response = await systemApi.getAnalysts()
       setAnalysts(response.analysts || [])
     } catch (error) {
       console.error('Failed to load analysts:', error)
@@ -72,12 +75,12 @@ export default function SettingsPage() {
 
   const loadAnalysisConfig = async () => {
     try {
-      const response = await apiService.getAnalysisConfig()
+      const response = await analysisApi.getAnalysisConfig()
       const config = response.default_config
       setAnalysisConfig(config)
       
       // Also get system config to load user preferences including language settings
-      const systemConfig = await apiService.getConfig()
+      const systemConfig = await systemApi.getConfig()
       const userPrefs = systemConfig.user_preferences || {}
       
       setModelFormData({
@@ -95,7 +98,7 @@ export default function SettingsPage() {
 
   const checkSystemHealth = async () => {
     try {
-      await apiService.health()
+      await healthCheck()
       setSystemHealth('healthy')
     } catch (error) {
       setSystemHealth('error')
@@ -107,7 +110,7 @@ export default function SettingsPage() {
   const handleSaveModelConfig = async () => {
     setSaving(true)
     try {
-      await apiService.updateUserPreferences(modelFormData)
+      await systemApi.updateUserPreferences(modelFormData)
       toast.success('AI模型配置保存成功')
       loadAnalysisConfig()
     } catch (error) {

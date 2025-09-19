@@ -89,10 +89,19 @@ async def update_user_preferences(preferences: UserPreferencesRequest, request: 
         if not preferences.default_language and not preferences.report_language:
             accept_language = request.headers.get("Accept-Language")
             if accept_language:
-                # Import the language normalization function
-                from backend.services.analysis_runner_service import AnalysisRunnerService
-                runner_service = AnalysisRunnerService()
-                normalized_language = runner_service._normalize_language(accept_language)
+                # Extract primary language from Accept-Language header
+                primary_lang = accept_language.split(',')[0].strip()
+                # Map common language codes to supported ones
+                language_map = {
+                    "zh-CN": "zh-CN", "zh-TW": "zh-TW", "zh": "zh-CN",
+                    "en-US": "en-US", "en-GB": "en-US", "en": "en-US",
+                    "ja": "ja-JP", "ja-JP": "ja-JP",
+                    "ko": "ko-KR", "ko-KR": "ko-KR",
+                    "fr": "fr-FR", "fr-FR": "fr-FR",
+                    "de": "de-DE", "de-DE": "de-DE",
+                    "es": "es-ES", "es-ES": "es-ES",
+                }
+                normalized_language = language_map.get(primary_lang, "en-US")
                 pref_updates["default_language"] = normalized_language
                 pref_updates["report_language"] = normalized_language
                 logger.info(f"Auto-detected language from browser: {accept_language} -> {normalized_language}")
@@ -101,7 +110,7 @@ async def update_user_preferences(preferences: UserPreferencesRequest, request: 
         user_config_repo.save_user_config("demo_user", pref_updates)
         
         # Log system event
-        storage.log_system_event("preferences_updated", {
+        system_repo.log_system_event("preferences_updated", {
             "updated_preferences": list(pref_updates.keys())
         })
             
@@ -158,11 +167,11 @@ async def get_available_models():
 async def get_system_stats():
     """Get system statistics"""
     try:
-        stats = storage.get_storage_stats()
+        stats = system_repo.get_storage_stats()
         
         # Add runtime stats by querying database
-        active_tasks = storage.list_scheduled_tasks(status="running", limit=1000)
-        completed_tasks = storage.list_scheduled_tasks(status="completed", limit=1000)
+        active_tasks = system_repo.list_scheduled_tasks(status="running", limit=1000)
+        completed_tasks = system_repo.list_scheduled_tasks(status="completed", limit=1000)
         
         stats["runtime"] = {
             "active_tasks": len(active_tasks),
@@ -179,7 +188,7 @@ async def get_system_stats():
 async def get_system_logs(date: str = None, event_type: str = None):
     """Get system logs"""
     try:
-        logs = storage.get_system_logs(date, event_type)
+        logs = system_repo.get_system_logs(date, event_type)
         return {"logs": logs}
     except Exception as e:
         logger.error(f"Error getting system logs: {e}")
@@ -189,14 +198,14 @@ async def get_system_logs(date: str = None, event_type: str = None):
 async def cleanup_system():
     """Cleanup expired cache and old logs"""
     try:
-        storage.clear_expired_cache()
+        system_repo.clear_expired_cache()
         
         # Clean up old completed tasks (older than 24 hours)
         from datetime import timedelta
         cutoff_time = datetime.now() - timedelta(hours=24)
         
         # Get old completed tasks
-        old_tasks = storage.list_scheduled_tasks(status="completed", limit=1000)
+        old_tasks = system_repo.list_scheduled_tasks(status="completed", limit=1000)
         expired_tasks_count = 0
         
         for task in old_tasks:
@@ -204,7 +213,7 @@ async def cleanup_system():
                 from datetime import datetime
                 completed_at = datetime.fromisoformat(task["completed_at"].replace('Z', '+00:00'))
                 if completed_at < cutoff_time:
-                    storage.delete_scheduled_task(task["task_id"])
+                    system_repo.delete_scheduled_task(task["task_id"])
                     expired_tasks_count += 1
         
         return {

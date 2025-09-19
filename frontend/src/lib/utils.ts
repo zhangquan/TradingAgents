@@ -128,6 +128,34 @@ export function formatTimestamp(dateStr: string): string {
 }
 
 /**
+ * 格式化为完整的年月日时分秒
+ * @param dateStr - UTC时间字符串
+ * @returns YYYY年MM月DD日 HH:mm:ss格式的时间字符串
+ */
+export function formatFullTimestamp(dateStr: string): string {
+  try {
+    const date = parseUTCDate(dateStr)
+    return format(date, 'yyyy年MM月dd日 HH:mm:ss')
+  } catch {
+    return dateStr
+  }
+}
+
+/**
+ * 格式化为紧凑的年月日时分
+ * @param dateStr - UTC时间字符串
+ * @returns YYYY-MM-DD HH:mm格式的时间字符串
+ */
+export function formatCompactDateTime(dateStr: string): string {
+  try {
+    const date = parseUTCDate(dateStr)
+    return format(date, 'yyyy-MM-dd HH:mm')
+  } catch {
+    return dateStr
+  }
+}
+
+/**
  * 格式化为ISO日期字符串（YYYY-MM-DD）
  * @param dateStr - UTC时间字符串
  * @returns YYYY-MM-DD格式的日期字符串

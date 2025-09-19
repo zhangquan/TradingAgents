@@ -6,59 +6,40 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Trash2, Plus, Star, StarOff, AlertCircle, Check } from 'lucide-react'
-import { apiService } from '@/lib/api'
+import { useWatchlistStore } from '@/store/watchlistStore'
+import { useStockStore } from '@/store/stockStore'
 import { toast } from 'sonner'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 
-interface WatchlistData {
-  user_id: string
-  watchlist: string[]
-  available_stocks: string[]
-  unavailable_stocks: string[]
-  total_count: number
-  available_count: number
-  generated_at: string
-}
-
 export function WatchlistManager() {
-  const [watchlistData, setWatchlistData] = useState<WatchlistData | null>(null)
-  const [allAvailableStocks, setAllAvailableStocks] = useState<string[]>([])
   const [newSymbol, setNewSymbol] = useState('')
-  const [loading, setLoading] = useState(true)
   const [addingStock, setAddingStock] = useState(false)
-
-  const loadWatchlist = async () => {
-    try {
-      setLoading(true)
-      const data = await apiService.getWatchlist()
-      setWatchlistData(data)
-    } catch (error) {
-      console.error('Failed to load watchlist:', error)
-      toast.error("加载关注列表失败")
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const loadAllAvailableStocks = async () => {
-    try {
-      // 获取所有可用股票（不考虑用户关注）
-      const response = await apiService.getAvailableStocks()
-      if (response.source === 'all_available') {
-        setAllAvailableStocks(response.stocks)
-      } else {
-        // 如果返回的是用户关注的股票，我们需要获取完整的列表
-        // 这里可以通过调用一个获取所有股票的API或者从缓存获取
-        setAllAvailableStocks([...response.stocks, ...response.unavailable_stocks || []])
-      }
-    } catch (error) {
-      console.error('Failed to load available stocks:', error)
-    }
-  }
+  
+  // Zustand stores
+  const {
+    symbols: watchlistSymbols,
+    isLoading: watchlistLoading,
+    error: watchlistError,
+    loadWatchlist,
+    addToWatchlist,
+    removeFromWatchlist,
+    clearError: clearWatchlistError,
+    isInWatchlist
+  } = useWatchlistStore()
+  
+  const {
+    availableStocks,
+    isLoading: stocksLoading,
+    error: stocksError,
+    loadAvailableStocks,
+    clearError: clearStocksError
+  } = useStockStore()
+  
+  const loading = watchlistLoading || stocksLoading
 
   useEffect(() => {
     loadWatchlist()
-    loadAllAvailableStocks()
+    loadAvailableStocks()
   }, [])
 
   const handleAddStock = async () => {
@@ -68,8 +49,7 @@ export function WatchlistManager() {
     
     try {
       setAddingStock(true)
-      await apiService.addToWatchlist(symbol)
-      await loadWatchlist()
+      await addToWatchlist(symbol)
       setNewSymbol('')
       toast.success(`股票 ${symbol} 已添加到关注列表`)
     } catch (error: any) {
@@ -83,8 +63,7 @@ export function WatchlistManager() {
 
   const handleRemoveStock = async (symbol: string) => {
     try {
-      await apiService.removeFromWatchlist(symbol)
-      await loadWatchlist()
+      await removeFromWatchlist(symbol)
       toast.success(`股票 ${symbol} 已从关注列表中移除`)
     } catch (error: any) {
       console.error('Failed to remove stock:', error)
@@ -94,13 +73,11 @@ export function WatchlistManager() {
   }
 
   const getStockBadgeVariant = (symbol: string) => {
-    if (!watchlistData) return "secondary"
-    return watchlistData.available_stocks.includes(symbol) ? "default" : "destructive"
+    return availableStocks.includes(symbol) ? "default" : "destructive"
   }
 
   const getStockStatus = (symbol: string) => {
-    if (!watchlistData) return "unknown"
-    return watchlistData.available_stocks.includes(symbol) ? "available" : "unavailable"
+    return availableStocks.includes(symbol) ? "available" : "unavailable"
   }
 
   if (loading) {
@@ -158,7 +135,7 @@ export function WatchlistManager() {
             </Button>
           </div>
           <div className="text-xs text-gray-500">
-            可用股票: {allAvailableStocks.length} 个
+            可用股票: {availableStocks.length} 个
           </div>
         </div>
 
@@ -167,22 +144,37 @@ export function WatchlistManager() {
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-medium">当前关注列表</h3>
             <Badge variant="outline">
-              {watchlistData?.total_count || 0} 个股票
+              {watchlistSymbols.length} 个股票
             </Badge>
           </div>
 
-          {watchlistData && watchlistData.unavailable_stocks.length > 0 && (
+          {/* Show error alerts */}
+          {(watchlistError || stocksError) && (
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                注意：{watchlistData.unavailable_stocks.length} 个关注的股票暂无数据: {watchlistData.unavailable_stocks.join(', ')}
+                {watchlistError || stocksError}
               </AlertDescription>
             </Alert>
           )}
 
-          {watchlistData && watchlistData.watchlist.length > 0 ? (
+          {/* Show unavailable stocks */}
+          {watchlistSymbols.length > 0 && (
+            <div>
+              {watchlistSymbols.filter(symbol => !availableStocks.includes(symbol)).length > 0 && (
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    注意：{watchlistSymbols.filter(symbol => !availableStocks.includes(symbol)).length} 个关注的股票暂无数据: {watchlistSymbols.filter(symbol => !availableStocks.includes(symbol)).join(', ')}
+                  </AlertDescription>
+                </Alert>
+              )}
+            </div>
+          )}
+
+          {watchlistSymbols.length > 0 ? (
             <div className="grid gap-2">
-              {watchlistData.watchlist.map((symbol) => {
+              {watchlistSymbols.map((symbol) => {
                 const status = getStockStatus(symbol)
                 return (
                   <div
@@ -224,23 +216,23 @@ export function WatchlistManager() {
         </div>
 
         {/* 统计信息 */}
-        {watchlistData && (
+        {watchlistSymbols.length > 0 && (
           <div className="grid grid-cols-3 gap-4 pt-4 border-t">
             <div className="text-center">
               <div className="text-2xl font-bold text-blue-600">
-                {watchlistData.total_count}
+                {watchlistSymbols.length}
               </div>
               <div className="text-xs text-gray-500">总关注</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-green-600">
-                {watchlistData.available_count}
+                {watchlistSymbols.filter(symbol => availableStocks.includes(symbol)).length}
               </div>
               <div className="text-xs text-gray-500">有数据</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-red-600">
-                {watchlistData.total_count - watchlistData.available_count}
+                {watchlistSymbols.filter(symbol => !availableStocks.includes(symbol)).length}
               </div>
               <div className="text-xs text-gray-500">无数据</div>
             </div>
@@ -250,3 +242,4 @@ export function WatchlistManager() {
     </Card>
   )
 }
+

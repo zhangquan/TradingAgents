@@ -79,17 +79,17 @@ class AnalysisRunnerService:
             "report_language": user_config.get("report_language", DEFAULT_CONFIG["report_language"])
         }
     
-    def prepare_analysis_config(self, user_id: str, language: str = "en-US") -> Tuple[Dict[str, Any], Dict[str, Any]]:
+    def prepare_analysis_config(self, user_id: str) -> Tuple[Dict[str, Any], Dict[str, Any]]:
         """Prepare configuration for analysis."""
         user_config = self.get_user_config_with_defaults(user_id)
         
-        # Use user's saved language preference if available, otherwise use the provided language
+        # Use user's saved language preference from system configuration
         saved_language = user_config.get("report_language") or user_config.get("default_language")
-        # Only use saved language if it's not 'auto' or empty
+        # Use saved language if available, otherwise use default
         if saved_language and saved_language != 'auto':
             report_language = saved_language
         else:
-            report_language = language
+            report_language = "en-US"  # Default fallback
         
         config = {
             "llm_provider": user_config["llm_provider"],
@@ -207,12 +207,8 @@ class AnalysisRunnerService:
         # Update task status
         self.scheduled_task_repo.update_scheduled_task_status(task_id, "running")
         
-        # Get language from task data if available
-        task_data = self.scheduled_task_repo.get_scheduled_task(task_id)
-        language = task_data.get("language", "en-US") if task_data else "en-US"
-        
-        # Prepare configuration
-        config, user_config = self.prepare_analysis_config(user_id, language)
+        # Prepare configuration using system-wide language settings
+        config, user_config = self.prepare_analysis_config(user_id)
         
         # Add analysts to config before getting trading graph
         config["analysts"] = analysts
@@ -354,12 +350,8 @@ class AnalysisRunnerService:
         # Update task status
         self.scheduled_task_repo.update_scheduled_task_status(task_id, "running")
         
-        # Get language from task data if available
-        task_data = self.scheduled_task_repo.get_scheduled_task(task_id)
-        language = task_data.get("language", "en-US") if task_data else "en-US"
-        
-        # Prepare configuration
-        config, user_config = self.prepare_analysis_config(user_id, language)
+        # Prepare configuration using system-wide language settings
+        config, user_config = self.prepare_analysis_config(user_id)
         
         # Add analysts to config before getting trading graph
         config["analysts"] = analysts

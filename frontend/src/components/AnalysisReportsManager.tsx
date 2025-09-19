@@ -22,7 +22,8 @@ import {
   User,
   Timer
 } from 'lucide-react'
-import { apiService, AnalysisReportItem } from '@/lib/api'
+import { useReportsStore } from '@/store/reportsStore'
+import { AnalysisReportItem } from '@/api/types'
 import { toast } from 'sonner'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
@@ -44,9 +45,22 @@ interface AnalysisReportsManagerProps {
 }
 
 export function AnalysisReportsManager({ initialTicker = '' }: AnalysisReportsManagerProps) {
-  const [reports, setReports] = useState<AnalysisReportItem[]>([])
   const [selectedReports, setSelectedReports] = useState<Set<string>>(new Set())
-  const [loading, setLoading] = useState(true)
+  
+  // Zustand store
+  const {
+    reports,
+    isLoading: loading,
+    error,
+    filters,
+    loadReports,
+    deleteReport,
+    deleteAnalysisReport,
+    deleteMultipleReports,
+    deleteMultipleAnalyses,
+    setFilters,
+    clearError
+  } = useReportsStore()
   const [showWatchlistOnly, setShowWatchlistOnly] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
@@ -54,29 +68,22 @@ export function AnalysisReportsManager({ initialTicker = '' }: AnalysisReportsMa
   const [tickerFilter, setTickerFilter] = useState<string>(initialTicker)
   const [reportTypeFilter, setReportTypeFilter] = useState<string>('')
 
-  const loadReports = async () => {
-    try {
-      setLoading(true)
-      const data = await apiService.getReports(
-        showWatchlistOnly, 
-        tickerFilter || undefined, 
-        reportTypeFilter && reportTypeFilter !== 'all' ? reportTypeFilter : undefined
-      )
-      
-      // Sort reports by creation time (newest first)
-      data.sort((a: AnalysisReportItem, b: AnalysisReportItem) => (b.created_at || '').localeCompare(a.created_at || ''))
-      setReports(data)
-    } catch (error) {
-      console.error('Failed to load reports:', error)
-      toast.error("加载分析报告失败")
-    } finally {
-      setLoading(false)
-    }
-  }
-
   useEffect(() => {
-    loadReports()
-  }, [showWatchlistOnly, tickerFilter, reportTypeFilter])
+    // Load reports with current filters
+    loadReports(
+      showWatchlistOnly, 
+      tickerFilter || undefined, 
+      reportTypeFilter && reportTypeFilter !== 'all' ? reportTypeFilter : undefined
+    )
+  }, [showWatchlistOnly, tickerFilter, reportTypeFilter, loadReports])
+
+  // Clear errors when component unmounts or error changes
+  useEffect(() => {
+    if (error) {
+      toast.error("加载分析报告失败: " + error)
+      clearError()
+    }
+  }, [error, clearError])
 
   const handleSelectReport = (reportId: string, checked: boolean) => {
     const newSelected = new Set(selectedReports)
@@ -117,13 +124,13 @@ export function AnalysisReportsManager({ initialTicker = '' }: AnalysisReportsMa
       
       // Delete new reports by report_id
       if (reportIds.length > 0) {
-        await apiService.deleteMultipleReports(reportIds)
+        await deleteMultipleReports(reportIds)
         deletedCount += reportIds.length
       }
       
       // Delete old reports by analysis_id (backward compatibility)
       if (analysisIds.length > 0) {
-        await apiService.deleteMultipleAnalyses(analysisIds)
+        await deleteMultipleAnalyses(analysisIds)
         deletedCount += analysisIds.length
       }
 
@@ -133,7 +140,6 @@ export function AnalysisReportsManager({ initialTicker = '' }: AnalysisReportsMa
       }
 
       setSelectedReports(new Set())
-      await loadReports()
       toast.success(`成功删除 ${deletedCount} 个分析报告`)
     } catch (error) {
       console.error('Failed to delete reports:', error)
@@ -153,9 +159,9 @@ export function AnalysisReportsManager({ initialTicker = '' }: AnalysisReportsMa
       setDeleting(true)
       
       if (report.report_id) {
-        await apiService.deleteReport(report.report_id)
+        await deleteReport(report.report_id)
       } else if (report.analysis_id) {
-        await apiService.deleteAnalysisReport(report.analysis_id)
+        await deleteAnalysisReport(report.analysis_id)
       } else {
         throw new Error("无效的报告ID")
       }

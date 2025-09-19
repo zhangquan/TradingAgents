@@ -48,6 +48,32 @@ class ConversationListItem(BaseModel):
     updated_at: str
 
 
+class ConversationDetail(BaseModel):
+    """会话详细信息"""
+    session_id: str
+    user_id: str
+    ticker: str
+    analysis_date: str
+    task_id: Optional[str]
+    analysts: List[str]
+    research_depth: int
+    llm_config: Dict[str, Any]
+    agent_status: Dict[str, str]
+    current_agent: Optional[str]
+    messages: List[Any]
+    tool_calls: List[Any]
+    report_sections: Dict[str, Any]
+    current_report: Optional[str]
+    final_report: Optional[str]
+    final_state: Optional[Dict[str, Any]]
+    processed_signal: Optional[Any]
+    execution_type: str
+    last_interaction: Optional[str]
+    is_finalized: bool
+    created_at: str
+    updated_at: str
+
+
 class UpdateAgentStatusRequest(BaseModel):
     """更新Agent状态请求"""
     agent_name: str
@@ -143,6 +169,105 @@ async def list_conversations(
     except Exception as e:
         logger.error(f"Error listing conversations for user {user_id}: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to list conversations: {str(e)}")
+
+
+@router.get("/by-stock", response_model=List[ConversationDetail])
+async def get_conversations_by_stock_and_user(
+    user_id: str = Query(..., description="用户ID"),
+    ticker: str = Query(..., description="股票代码"),
+    limit: int = Query(20, description="返回数量限制")
+):
+    """
+    根据股票代码和用户ID查询对话列表
+    """
+    try:
+        conversations = conversation_memory_service.get_conversations_by_stock_and_user(
+            user_id=user_id,
+            ticker=ticker,
+            limit=limit
+        )
+        
+        # 转换为响应格式
+        result = []
+        for conv in conversations:
+            result.append(ConversationDetail(
+                session_id=conv["session_id"],
+                user_id=conv["user_id"],
+                ticker=conv["ticker"],
+                analysis_date=conv["analysis_date"],
+                task_id=conv.get("task_id"),
+                analysts=conv.get("analysts", []),
+                research_depth=conv.get("research_depth", 1),
+                llm_config=conv.get("llm_config", {}),
+                agent_status=conv.get("agent_status", {}),
+                current_agent=conv.get("current_agent"),
+                messages=conv.get("messages", []),
+                tool_calls=conv.get("tool_calls", []),
+                report_sections=conv.get("report_sections", {}),
+                current_report=conv.get("current_report"),
+                final_report=conv.get("final_report"),
+                final_state=conv.get("final_state"),
+                processed_signal=conv.get("processed_signal"),
+                execution_type=conv.get("execution_type", "manual"),
+                last_interaction=conv.get("last_interaction"),
+                is_finalized=conv.get("is_finalized", False),
+                created_at=conv["created_at"],
+                updated_at=conv["updated_at"]
+            ))
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error getting conversations for user {user_id} and ticker {ticker}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get conversations: {str(e)}")
+
+
+@router.get("/newest-by-stock", response_model=Optional[ConversationDetail])
+async def get_newest_conversation_by_stock(
+    user_id: str = Query(..., description="用户ID"),
+    ticker: str = Query(..., description="股票代码")
+):
+    """
+    根据股票代码和用户ID获取最新的对话
+    """
+    try:
+        conversation = conversation_memory_service.get_newest_conversation_by_stock(
+            user_id=user_id,
+            ticker=ticker
+        )
+        
+        if not conversation:
+            return None
+        
+        # 转换为响应格式
+        return ConversationDetail(
+            session_id=conversation["session_id"],
+            user_id=conversation["user_id"],
+            ticker=conversation["ticker"],
+            analysis_date=conversation["analysis_date"],
+            task_id=conversation.get("task_id"),
+            analysts=conversation.get("analysts", []),
+            research_depth=conversation.get("research_depth", 1),
+            llm_config=conversation.get("llm_config", {}),
+            agent_status=conversation.get("agent_status", {}),
+            current_agent=conversation.get("current_agent"),
+            messages=conversation.get("messages", []),
+            tool_calls=conversation.get("tool_calls", []),
+            report_sections=conversation.get("report_sections", {}),
+            current_report=conversation.get("current_report"),
+            final_report=conversation.get("final_report"),
+            final_state=conversation.get("final_state"),
+            processed_signal=conversation.get("processed_signal"),
+            execution_type=conversation.get("execution_type", "manual"),
+            last_interaction=conversation.get("last_interaction"),
+            is_finalized=conversation.get("is_finalized", False),
+            created_at=conversation["created_at"],
+            updated_at=conversation["updated_at"]
+        )
+        
+    except Exception as e:
+        logger.error(f"Error getting newest conversation for user {user_id} and ticker {ticker}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get newest conversation: {str(e)}")
 
 
 @router.get("/{session_id}/state", response_model=Dict[str, Any])

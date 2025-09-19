@@ -19,12 +19,11 @@ import {
   Filter,
   Edit
 } from 'lucide-react'
-import { 
-  apiService, 
-  AnalysisConfig, 
-  ScheduledAnalysisRequest, 
-  ScheduledTaskInfo 
-} from '@/lib/api'
+import { analysisApi } from '@/api/analysis'
+import { systemApi } from '@/api/system'
+import { watchlistApi } from '@/api/watchlist'
+import { AnalysisConfig } from '@/api/types'
+import { ScheduledAnalysisRequest, ScheduledTaskInfo } from '@/api/types'
 import { toast } from 'sonner'
 
 export default function AnalysisPage() {
@@ -70,8 +69,8 @@ export default function AnalysisPage() {
 
   const loadScheduledTasks = async () => {
     try {
-      const response = await apiService.getAllTasks()
-      setScheduledTasks(response.scheduled_tasks || {})
+      const response = await analysisApi.getAllTasks()
+      setScheduledTasks(response || {})
     } catch (error) {
       console.error('Failed to load scheduled tasks:', error)
       toast.error('加载定时任务失败')
@@ -82,7 +81,7 @@ export default function AnalysisPage() {
 
   const loadAnalysts = async () => {
     try {
-      const response = await apiService.getAnalysts()
+      const response = await systemApi.getAnalysts()
       setAnalysts(response.analysts || [])
     } catch (error) {
       console.error('Failed to load analysts:', error)
@@ -91,7 +90,7 @@ export default function AnalysisPage() {
 
   const loadDefaultConfig = async () => {
     try {
-      const response = await apiService.getAnalysisConfig()
+      const response = await analysisApi.getAnalysisConfig()
       setDefaultConfig(response.default_config)
       // Set default form values from config
       setScheduleFormData(prev => ({
@@ -107,7 +106,7 @@ export default function AnalysisPage() {
   const loadWatchlist = async () => {
     try {
       setWatchlistLoading(true)
-      const response = await apiService.getWatchlist()
+      const response = await watchlistApi.getWatchlist()
       setWatchlist(response.available_stocks || [])
     } catch (error) {
       console.error('Failed to load watchlist:', error)
@@ -165,7 +164,7 @@ export default function AnalysisPage() {
     }
 
     try {
-      await apiService.updateTask(editingTaskId, editFormData)
+      await analysisApi.updateTask(editingTaskId, editFormData)
       toast.success('任务已更新')
       setIsEditDialogOpen(false)
       setEditingTaskId(null)
@@ -195,7 +194,7 @@ export default function AnalysisPage() {
     }
 
     try {
-      await apiService.createTask(scheduleFormData)
+      await analysisApi.createTask(scheduleFormData)
       toast.success('定时任务已创建')
       setIsScheduleDialogOpen(false)
       
@@ -219,7 +218,7 @@ export default function AnalysisPage() {
 
   const handleToggleTask = async (taskId: string) => {
     try {
-      await apiService.toggleTask(taskId)
+      await analysisApi.toggleTask(taskId)
       toast.success('定时任务状态已更新')
       loadScheduledTasks()
     } catch (error) {
@@ -230,7 +229,7 @@ export default function AnalysisPage() {
 
   const handleDeleteTask = async (taskId: string) => {
     try {
-      await apiService.deleteScheduledTask(taskId)
+      await analysisApi.deleteScheduledTask(taskId)
       toast.success('定时任务已删除')
       loadScheduledTasks()
     } catch (error) {
@@ -241,7 +240,7 @@ export default function AnalysisPage() {
 
   const handleRunTaskNow = async (taskId: string) => {
     try {
-      await apiService.runTaskNow(taskId)
+      await analysisApi.runTaskNow(taskId)
       toast.success('定时任务已立即执行')
       loadScheduledTasks() // Refresh to update last_run info
     } catch (error) {

@@ -37,7 +37,6 @@ class ScheduledTaskRepository(BaseRepository[ScheduledTask]):
                     schedule_time=task_data.get("schedule_time"),
                     schedule_date=task_data.get("schedule_date"),
                     cron_expression=task_data.get("cron_expression"),
-                    timezone=task_data.get("timezone", "UTC"),
                     status=task_data.get("status", "created"),
                     enabled=task_data.get("enabled", True),
                     progress=task_data.get("progress", 0),
@@ -233,13 +232,16 @@ class ScheduledTaskRepository(BaseRepository[ScheduledTask]):
         """禁用任务"""
         return self.update_scheduled_task(task_id, {"enabled": False})
     
-    def get_tasks_by_ticker(self, ticker: str, limit: int = 50) -> List[Dict[str, Any]]:
-        """获取特定股票的任务"""
+    def get_tasks_by_ticker(self, ticker: str, user_id: str = None, limit: int = 50) -> List[Dict[str, Any]]:
+        """Get tasks filtered by ticker symbol and optionally by user"""
         try:
             with self._get_session() as db:
-                tasks = db.query(ScheduledTask).filter(
-                    ScheduledTask.ticker == ticker
-                ).order_by(desc(ScheduledTask.created_at)).limit(limit).all()
+                query = db.query(ScheduledTask).filter(ScheduledTask.ticker == ticker.upper())
+                
+                if user_id:
+                    query = query.filter(ScheduledTask.user_id == user_id)
+                
+                tasks = query.order_by(desc(ScheduledTask.created_at)).limit(limit).all()
                 
                 return [self._to_dict(task) for task in tasks]
         except Exception as e:
@@ -289,12 +291,10 @@ class ScheduledTaskRepository(BaseRepository[ScheduledTask]):
             "schedule_time": task.schedule_time,
             "schedule_date": task.schedule_date,
             "cron_expression": task.cron_expression,
-            "timezone": task.timezone,
             "status": task.status,
             "enabled": task.enabled,
             "progress": task.progress,
             "current_step": task.current_step,
-            "analysis_id": task.analysis_id,
             "result_data": task.result_data,
             "error_message": task.error_message,
             "trace": task.trace,

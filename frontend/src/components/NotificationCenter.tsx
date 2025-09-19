@@ -14,16 +14,29 @@ import {
   Mail,
   Trash2
 } from 'lucide-react'
-import { useNotifications } from '@/hooks/useNotifications'
-import { NotificationData } from '@/lib/api'
+import { useNotificationsStore } from '@/store/notificationsStore'
+import { NotificationData } from '@/api/types'
+import { useEffect } from 'react'
 
 interface NotificationCenterProps {
   className?: string
 }
 
 export function NotificationCenter({ className }: NotificationCenterProps) {
-  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications()
+  const { 
+    notifications, 
+    unreadCount, 
+    markAsRead, 
+    markAllAsRead, 
+    loadNotifications,
+    isLoading 
+  } = useNotificationsStore()
   const [filter, setFilter] = useState<'all' | 'unread'>('all')
+
+  // Load notifications on mount
+  useEffect(() => {
+    loadNotifications()
+  }, [])
 
   const filteredNotifications = filter === 'unread' 
     ? notifications.filter(n => !n.read)

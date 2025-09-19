@@ -15,7 +15,8 @@ import {
   Settings,
   Brain
 } from 'lucide-react'
-import { apiService, ConversationSession, ConversationDetail } from '@/lib/api'
+import { conversationApi } from '@/api/conversation'
+import { ConversationSession, ConversationDetail } from '@/api/types'
 import StockCharts from '@/components/StockCharts'
 import { SessionAnalysisView } from '@/components/SessionAnalysisView'
 import { toast } from 'sonner'
@@ -51,7 +52,7 @@ export default function SessionDetailPage() {
       setSessionState(prev => ({ ...prev, loading: true, error: undefined }))
       
       // 获取完整的session详情，这个API包含了所有需要的信息
-      const sessionDetail = await apiService.restoreConversationSession(sessionId)
+      const sessionDetail = await conversationApi.restoreConversationSession(sessionId)
       
       // 构造session info对象（从session detail中提取）
       const sessionInfo: ConversationSession = {

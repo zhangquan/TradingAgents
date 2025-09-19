@@ -15,11 +15,9 @@ import {
   Settings,
   Loader2
 } from 'lucide-react'
-import { 
-  apiService, 
-  AnalysisConfig, 
-  ScheduledAnalysisRequest 
-} from '@/lib/api'
+import { analysisApi } from '@/api/analysis'
+import { systemApi } from '@/api/system'
+import { AnalysisConfig, ScheduledAnalysisRequest } from '@/api/types'
 import { toast } from 'sonner'
 import { 
   getSystemTimeZone, 
@@ -82,7 +80,7 @@ export function AnalysisTaskDialog({
 
   const loadAnalysts = async () => {
     try {
-      const response = await apiService.getAnalysts()
+      const response = await systemApi.getAnalysts()
       setAnalysts(response.analysts || [])
     } catch (error) {
       console.error('Failed to load analysts:', error)
@@ -92,7 +90,7 @@ export function AnalysisTaskDialog({
 
   const loadDefaultConfig = async () => {
     try {
-      const response = await apiService.getAnalysisConfig()
+      const response = await analysisApi.getAnalysisConfig()
       setDefaultConfig(response.default_config)
       
       // Set default form values from config
@@ -111,7 +109,7 @@ export function AnalysisTaskDialog({
     
     try {
       setLoading(true)
-      const task = await apiService.getTask(taskId)
+      const task = await analysisApi.getTask(taskId)
       setFormData({
         ticker: task.ticker,
         analysts: task.analysts,
@@ -158,19 +156,19 @@ export function AnalysisTaskDialog({
           schedule_time: now.toTimeString().split(' ')[0].substring(0, 5)
         }
         
-        const response = await apiService.createTask(immediateFormData)
+        const response = await analysisApi.createTask(immediateFormData)
         
         // Immediately run the task
-        await apiService.runTaskNow(response.task_id)
+        await analysisApi.runTaskNow(response.task_id)
         
         toast.success('分析任务已立即执行')
         onTaskCreated?.(response.task_id)
       } else if (mode === 'scheduled') {
-        const response = await apiService.createTask(formData)
+        const response = await analysisApi.createTask(formData)
         toast.success('定时任务已创建')
         onTaskCreated?.(response.task_id)
       } else if (mode === 'edit' && taskId) {
-        await apiService.updateTask(taskId, formData)
+        await analysisApi.updateTask(taskId, formData)
         toast.success('任务已更新')
         onTaskUpdated?.()
       }

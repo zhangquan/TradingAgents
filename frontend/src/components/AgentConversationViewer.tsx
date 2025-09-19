@@ -22,9 +22,9 @@ import {
   Clock,
   Timer
 } from 'lucide-react'
-import { apiService, ConversationDetail } from '@/lib/api'
+import { useConversationStore } from '@/store/conversationStore'
 import { toast } from 'sonner'
-import { formatTimestamp } from '@/lib/utils'
+import { formatTimestamp, formatCompactDateTime } from '@/lib/utils'
 import { MarkdownRenderer } from './MarkdownRenderer'
 
 interface AgentConversationViewerProps {
@@ -33,8 +33,17 @@ interface AgentConversationViewerProps {
 }
 
 export function AgentConversationViewer({ sessionId, className = '' }: AgentConversationViewerProps) {
-  const [conversationData, setConversationData] = useState<ConversationDetail | null>(null)
-  const [loading, setLoading] = useState(false)
+  // Use store state and actions
+  const { 
+    currentSession,
+    currentSessionId, 
+    isLoading,
+    error,
+    restoreSession,
+    setCurrentSession,
+    clearError
+  } = useConversationStore()
+
   const [activeTab, setActiveTab] = useState('reports')
   const [activeReportTab, setActiveReportTab] = useState('')
 
@@ -42,32 +51,39 @@ export function AgentConversationViewer({ sessionId, className = '' }: AgentConv
     if (sessionId) {
       loadConversationData()
     } else {
-      setConversationData(null)
+      // Clear current session if no sessionId
+      if (currentSessionId) {
+        setCurrentSession(null)
+      }
     }
   }, [sessionId])
 
-  // 当 conversationData 变化时，初始化 activeReportTab
+  // 当 currentSession 变化时，初始化 activeReportTab
   useEffect(() => {
-    if (conversationData?.reports?.sections) {
-      const availableSections = Object.entries(conversationData.reports.sections).filter(([_, content]) => content)
+    if (currentSession?.reports?.sections) {
+      const availableSections = Object.entries(currentSession.reports.sections).filter(([_, content]) => content)
       if (availableSections.length > 0 && !activeReportTab) {
         setActiveReportTab(availableSections[0][0])
       }
     }
-  }, [conversationData, activeReportTab])
+  }, [currentSession, activeReportTab])
+
+  // Show error toast when store error changes
+  useEffect(() => {
+    if (error) {
+      toast.error('无法加载Agent对话数据: ' + error)
+      clearError()
+    }
+  }, [error, clearError])
 
   const loadConversationData = async () => {
     if (!sessionId) return
     
     try {
-      setLoading(true)
-      const data = await apiService.restoreConversationSession(sessionId)
-      setConversationData(data)
+      await restoreSession(sessionId)
     } catch (error) {
       console.error('Failed to load conversation data:', error)
-      toast.error('无法加载Agent对话数据')
-    } finally {
-      setLoading(false)
+      // Error is already handled by the store and useEffect above
     }
   }
 
@@ -129,9 +145,9 @@ export function AgentConversationViewer({ sessionId, className = '' }: AgentConv
 
   // 渲染Agent概览
   const renderAgentOverview = () => {
-    if (!conversationData) return null
+    if (!currentSession) return null
 
-    const { session_info, agent_status, statistics } = conversationData
+    const { session_info, agent_status, statistics } = currentSession
 
     return (
       <div className="space-y-6">
@@ -150,8 +166,8 @@ export function AgentConversationViewer({ sessionId, className = '' }: AgentConv
                 <div className="font-medium">{session_info.ticker}</div>
               </div>
               <div>
-                <div className="text-sm text-gray-500">分析日期</div>
-                <div className="font-medium">{session_info.analysis_date}</div>
+                <div className="text-sm text-gray-500">股票代码</div>
+                <div className="font-medium">{session_info.ticker}</div>
               </div>
               <div>
                 <div className="text-sm text-gray-500">会话状态</div>
@@ -183,10 +199,10 @@ export function AgentConversationViewer({ sessionId, className = '' }: AgentConv
                   )}
                 </Badge>
               </div>
-              <div>
-                <div className="text-sm text-gray-500">创建时间</div>
+              <div className="col-span-2">
+                <div className="text-sm text-gray-500">执行时间</div>
                 <div className="font-medium text-sm">
-                  {formatTimestamp(session_info.created_at)}
+                  {formatCompactDateTime(session_info.created_at)}
                 </div>
               </div>
             </div>
@@ -252,11 +268,11 @@ export function AgentConversationViewer({ sessionId, className = '' }: AgentConv
 
   // 渲染聊天历史
   const renderChatHistory = () => {
-    if (!conversationData?.chat_history) return null
+    if (!currentSession?.chat_history) return null
 
     return (
       <div className="space-y-4">
-        {conversationData.chat_history.map((message, index) => (
+        {currentSession.chat_history.map((message, index) => (
           <div key={message.message_id || index} className="flex gap-3">
             <div className="flex-shrink-0 mt-1">
               {getMessageIcon(message.role)}
@@ -279,7 +295,7 @@ export function AgentConversationViewer({ sessionId, className = '' }: AgentConv
                   </Badge>
                 )}
                 <span className="text-gray-400 text-xs">
-                  {formatTimestamp(message.timestamp)}
+                  {formatCompactDateTime(message.timestamp)}
                 </span>
               </div>
               <div className="text-sm bg-gray-50 rounded-lg p-3">
@@ -294,9 +310,9 @@ export function AgentConversationViewer({ sessionId, className = '' }: AgentConv
 
   // 渲染分析报告
   const renderAnalysisReports = () => {
-    if (!conversationData?.reports?.sections) return null
+    if (!currentSession?.reports?.sections) return null
 
-    const sections = conversationData.reports.sections
+    const sections = currentSession.reports.sections
     const availableSections = Object.entries(sections).filter(([_, content]) => content)
     
     if (availableSections.length === 0) {
@@ -409,7 +425,7 @@ export function AgentConversationViewer({ sessionId, className = '' }: AgentConv
   }
 
   // 如果正在加载，显示加载状态
-  if (loading) {
+  if (isLoading) {
     return (
       <div className={`flex items-center justify-center h-64 ${className}`}>
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -419,7 +435,7 @@ export function AgentConversationViewer({ sessionId, className = '' }: AgentConv
   }
 
   // 如果没有数据，显示错误状态
-  if (!conversationData) {
+  if (!currentSession && sessionId) {
     return (
       <div className={`text-center py-8 text-gray-500 ${className}`}>
         <MessageCircle className="h-12 w-12 mx-auto mb-3 opacity-50" />
@@ -429,6 +445,7 @@ export function AgentConversationViewer({ sessionId, className = '' }: AgentConv
           variant="outline" 
           className="mt-4"
           onClick={loadConversationData}
+          disabled={isLoading}
         >
           重试加载
         </Button>
@@ -476,7 +493,7 @@ export function AgentConversationViewer({ sessionId, className = '' }: AgentConv
         </TabsContent>
 
         <div className="flex justify-between items-center pt-4 border-t">
-          <Button variant="outline" onClick={loadConversationData} disabled={loading}>
+          <Button variant="outline" onClick={loadConversationData} disabled={isLoading}>
             <RefreshCw className="h-4 w-4 mr-2" />
             刷新数据
           </Button>

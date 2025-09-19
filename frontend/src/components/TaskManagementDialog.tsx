@@ -18,12 +18,10 @@ import {
   Calendar,
   Clock
 } from 'lucide-react'
-import { 
-  apiService, 
-  ScheduledTaskInfo 
-} from '@/lib/api'
+import { ScheduledTaskInfo, UnifiedTaskInfo } from '@/api/types'
+import { useAnalysisStore } from '@/store/analysisStore'
 import { toast } from 'sonner'
-import { AnalysisTaskDialog } from './AnalysisTaskDialog'
+import { AnalysisTaskDialog } from './AnalysisTaskCreateDialog'
 import { 
   formatTimeWithTimezone, 
   getTimezoneOffset,
@@ -43,8 +41,7 @@ export function TaskManagementDialog({
   ticker,
   onTaskUpdated 
 }: TaskManagementDialogProps) {
-  const [scheduledTasks, setScheduledTasks] = useState<Record<string, ScheduledTaskInfo>>({})
-  const [loading, setLoading] = useState(false)
+  const [stockTasks, setStockTasks] = useState<UnifiedTaskInfo[]>([])
   const [filterStatus, setFilterStatus] = useState<string>('all')
   
   // Task dialog states
@@ -52,28 +49,59 @@ export function TaskManagementDialog({
   const [taskDialogMode, setTaskDialogMode] = useState<'immediate' | 'scheduled' | 'edit'>('scheduled')
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null)
 
+  // Use store
+  const { 
+    tasks,
+    isLoading,
+    error,
+    loadTasks,
+    loadTasksByStock,
+    deleteTask,
+    toggleTask,
+    runTaskNow,
+    clearError
+  } = useAnalysisStore()
+
   useEffect(() => {
     if (open) {
       loadScheduledTasks()
     }
-  }, [open])
+  }, [open, ticker])
+
+  // Clear any previous error when dialog opens
+  useEffect(() => {
+    if (open) {
+      clearError()
+    }
+  }, [open, clearError])
 
   const loadScheduledTasks = async () => {
     try {
-      setLoading(true)
-      const response = await apiService.getAllTasks()
-      setScheduledTasks(response.scheduled_tasks || {})
+      if (ticker) {
+        // 使用新的按股票筛选API
+        const response = await loadTasksByStock(ticker)
+        setStockTasks(response.tasks)
+      } else {
+        // 加载所有任务
+        await loadTasks()
+        setStockTasks(tasks)
+      }
     } catch (error) {
       console.error('Failed to load scheduled tasks:', error)
       toast.error('加载定时任务失败')
-    } finally {
-      setLoading(false)
     }
   }
 
+  // Update stockTasks when store tasks change (for non-ticker case)
+  useEffect(() => {
+    if (!ticker) {
+      setStockTasks(tasks)
+    }
+  }, [tasks, ticker])
+
   const handleToggleTask = async (taskId: string) => {
     try {
-      await apiService.toggleTask(taskId)
+      await toggleTask(taskId)
       toast.success('定时任务状态已更新')
       loadScheduledTasks()
       onTaskUpdated?.()
@@ -87,7 +115,7 @@ export function TaskManagementDialog({
     if (!confirm('确定要删除这个定时任务吗？')) return
     
     try {
-      await apiService.deleteScheduledTask(taskId)
+      await deleteTask(taskId)
       toast.success('定时任务已删除')
       loadScheduledTasks()
       onTaskUpdated?.()
@@ -99,7 +127,7 @@ export function TaskManagementDialog({
 
   const handleRunTaskNow = async (taskId: string) => {
     try {
-      await apiService.runTaskNow(taskId)
+      await runTaskNow(taskId)
       toast.success('定时任务已立即执行')
       loadScheduledTasks()
       onTaskUpdated?.()
@@ -133,15 +161,9 @@ export function TaskManagementDialog({
   }
 
   const getFilteredTasks = () => {
-    let tasks = Object.entries(scheduledTasks)
-    
-    // 如果指定了ticker，只显示该股票的任务
-    if (ticker) {
-      tasks = tasks.filter(([_, task]) => task.ticker === ticker)
-    }
-    
-    // 按状态筛选
-    return tasks.filter(([_, task]) => {
+    // 如果指定了ticker，数据已经在loadScheduledTasks中过滤了
+    // 所以这里只需要按状态筛选
+    return stockTasks.filter((task) => {
       if (filterStatus === 'all') return true
       if (filterStatus === 'enabled' && task.enabled) return true
       if (filterStatus === 'disabled' && !task.enabled) return true
@@ -149,7 +171,7 @@ export function TaskManagementDialog({
     })
   }
 
-  const getScheduleDescription = (task: ScheduledTaskInfo) => {
+  const getScheduleDescription = (task: UnifiedTaskInfo) => {
     // 使用系统时区而不是任务时区
     const systemTimezone = getSystemTimeZone()
     const timezoneOffset = getTimezoneOffset(systemTimezone)
@@ -195,9 +217,9 @@ export function TaskManagementDialog({
                   variant="outline" 
                   size="sm" 
                   onClick={loadScheduledTasks}
-                  disabled={loading}
+                  disabled={isLoading}
                 >
-                  <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                  <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
                   刷新
                 </Button>
               </div>
@@ -225,7 +247,12 @@ export function TaskManagementDialog({
 
             {/* 任务列表 */}
             <div className="flex-1 overflow-y-auto">
-              {loading ? (
+              {error && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-sm text-red-700">
+                  {error}
+                </div>
+              )}
+              {isLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <RefreshCw className="h-6 w-6 animate-spin text-blue-600" />
                   <span className="ml-2">加载中...</span>
@@ -246,8 +273,8 @@ export function TaskManagementDialog({
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {filteredTasks.map(([taskId, task]) => (
-                    <div key={taskId} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                  {filteredTasks.map((task) => (
+                    <div key={task.task_id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3 flex-1">
                           <div className={`h-3 w-3 rounded-full ${task.enabled ? 'bg-green-500' : 'bg-gray-400'}`} />
@@ -266,10 +293,10 @@ export function TaskManagementDialog({
                                   {getScheduleDescription(task)}
                                 </div>
                                 <div>
-                                  分析师: {task.analysts.join(', ')}
+                                  分析师: {task.analysts?.join(', ') || 'N/A'}
                                 </div>
                                 <div>
-                                  深度: 级别 {task.research_depth}
+                                  深度: 级别 {task.research_depth || 1}
                                 </div>
                               </div>
                               
@@ -280,7 +307,7 @@ export function TaskManagementDialog({
                               
                               <div className="flex items-center gap-4 text-xs">
                                 <div>
-                                  已执行: {task.execution_count} 次
+                                  已执行: {task.execution_count || 0} 次
                                 </div>
                                 {task.last_run && (
                                   <div>
@@ -296,7 +323,7 @@ export function TaskManagementDialog({
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleToggleTask(taskId)}
+                            onClick={() => handleToggleTask(task.task_id)}
                           >
                             {task.enabled ? (
                               <>
@@ -314,7 +341,7 @@ export function TaskManagementDialog({
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleEditTask(taskId)}
+                            onClick={() => handleEditTask(task.task_id)}
                           >
                             <Edit className="h-4 w-4 mr-1" />
                             编辑
@@ -323,7 +350,7 @@ export function TaskManagementDialog({
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleRunTaskNow(taskId)}
+                            onClick={() => handleRunTaskNow(task.task_id)}
                           >
                             <Play className="h-4 w-4 mr-1" />
                             执行
@@ -332,7 +359,7 @@ export function TaskManagementDialog({
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleDeleteTask(taskId)}
+                            onClick={() => handleDeleteTask(task.task_id)}
                             className="text-red-600 hover:text-red-700"
                           >
                             <Trash2 className="h-4 w-4 mr-1" />
@@ -368,3 +395,4 @@ export function TaskManagementDialog({
     </>
   )
 }
+

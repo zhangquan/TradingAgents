@@ -16,7 +16,8 @@ import {
   Upload,
   Trash2
 } from 'lucide-react'
-import { apiService } from '@/lib/api'
+import { systemApi } from '@/api/system'
+import { healthCheck } from '@/api/index'
 import { SystemStatus } from '@/components/SystemStatus'
 import { NotificationCenter } from '@/components/NotificationCenter'
 import { toast } from 'sonner'
@@ -34,8 +35,8 @@ export default function AdminPage() {
   const loadAdminData = async () => {
     try {
       const [stats, systemLogs] = await Promise.all([
-        apiService.getSystemStats(),
-        apiService.getSystemLogs()
+        systemApi.getSystemStats(),
+        systemApi.getSystemLogs()
       ])
       const cache = { hit_rate: 0, total_entries: 0, hits: 0, misses: 0 } // 模拟缓存数据
 
@@ -52,7 +53,7 @@ export default function AdminPage() {
 
   const handleCleanupSystem = async () => {
     try {
-      const result = await apiService.cleanupSystem()
+      const result = await systemApi.cleanupSystem()
       toast.success(`系统清理完成，清理了 ${result.expired_tasks_removed} 个过期任务`)
       loadAdminData()
     } catch (error) {

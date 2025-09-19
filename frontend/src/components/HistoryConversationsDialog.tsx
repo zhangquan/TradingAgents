@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -20,7 +20,8 @@ import {
   ArrowLeft,
   ExternalLink
 } from 'lucide-react'
-import { apiService, ConversationSession } from '@/lib/api'
+import { useConversationStore } from '@/store/conversationStore'
+import { ConversationSession } from '@/api/types'
 import { toast } from 'sonner'
 import {
   Dialog,
@@ -49,39 +50,51 @@ export function HistoryConversationsDialog({
   currentStock
 }: HistoryConversationsDialogProps) {
   const navigate = useNavigate()
+  
+  // Use conversation store
+  const { 
+    sessions,
+    isLoading,
+    error,
+    userId,
+    loadUserSessions,
+    clearError
+  } = useConversationStore()
+
   const [open, setOpen] = useState(false)
-  const [conversations, setConversations] = useState<ConversationSession[]>([])
-  const [loading, setLoading] = useState(false)
   const [tickerFilter, setTickerFilter] = useState<string>(initialTicker)
   const [selectedConversation, setSelectedConversation] = useState<ConversationSession | null>(null)
   const [viewMode, setViewMode] = useState<'list' | 'detail'>('list')
 
+  // Filter sessions based on ticker filter
+  const filteredConversations = React.useMemo(() => {
+    let filtered = sessions
+    if (tickerFilter) {
+      filtered = sessions.filter(conv => 
+        conv.ticker.toUpperCase().includes(tickerFilter.toUpperCase())
+      )
+    }
+    
+    // Sort by creation time, newest first
+    return filtered.sort((a, b) => 
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    )
+  }, [sessions, tickerFilter])
+
+  // Show error toast when store error changes
+  useEffect(() => {
+    if (error) {
+      toast.error('加载对话历史失败: ' + error)
+      clearError()
+    }
+  }, [error, clearError])
+
   const loadConversations = async () => {
     try {
-      setLoading(true)
-      
-      // 获取用户的所有对话记录
-      const allConversations = await apiService.listUserConversations('demo_user', 100)
-      
-      // 根据ticker过滤
-      let filteredConversations = allConversations
-      if (tickerFilter) {
-        filteredConversations = allConversations.filter(conv => 
-          conv.ticker.toUpperCase().includes(tickerFilter.toUpperCase())
-        )
-      }
-      
-      // 按创建时间排序，最新的在前面
-      filteredConversations.sort((a, b) => 
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      )
-      
-      setConversations(filteredConversations)
+      await loadUserSessions(userId, 100)
     } catch (error) {
       console.error('Failed to load conversations:', error)
-      toast.error("加载对话历史失败")
-    } finally {
-      setLoading(false)
+      // Error is already handled by the store and useEffect above
     }
   }
 
@@ -179,7 +192,7 @@ export function HistoryConversationsDialog({
           variant="outline" 
           size="sm" 
           onClick={loadConversations}
-          disabled={loading}
+          disabled={isLoading}
         >
           刷新
         </Button>
@@ -188,9 +201,9 @@ export function HistoryConversationsDialog({
       <Separator />
 
       {/* 对话列表 */}
-      {loading ? (
+      {isLoading ? (
         <div className="text-center py-8 text-gray-500">加载中...</div>
-      ) : conversations.length === 0 ? (
+      ) : filteredConversations.length === 0 ? (
         <div className="text-center py-8 text-gray-500">
           <FolderOpen className="h-12 w-12 mx-auto mb-3 opacity-50" />
           <p>暂无对话记录</p>
@@ -200,7 +213,7 @@ export function HistoryConversationsDialog({
         </div>
       ) : (
         <div className="space-y-3 max-h-96 overflow-y-auto">
-          {conversations.map((conversation) => {
+          {filteredConversations.map((conversation) => {
             const statusInfo = getConversationDisplayStatus(conversation)
             return (
               <div 

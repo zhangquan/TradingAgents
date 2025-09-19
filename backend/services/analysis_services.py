@@ -57,12 +57,10 @@ class AnalysisService:
                               research_depth: int,
                               schedule_type: str,
                               schedule_time: str,
-                              timezone: str = "UTC",
                               schedule_date: Optional[str] = None,
                               cron_expression: Optional[str] = None,
                               enabled: bool = True,
-                              user_id: str = "demo_user",
-                              language: str = "en-US") -> Dict[str, Any]:
+                              user_id: str = "demo_user") -> Dict[str, Any]:
         """
         Create scheduled task.
         This method creates and stores the task data in the unified ScheduledTask model.
@@ -73,7 +71,6 @@ class AnalysisService:
             research_depth: Depth of analysis
             schedule_type: Type of schedule ('once', 'daily', 'weekly', 'monthly', 'cron')
             schedule_time: Time in HH:MM format
-            timezone: Timezone for scheduling
             schedule_date: Date for 'once' type (YYYY-MM-DD)
             cron_expression: Cron expression for 'cron' type
             enabled: Whether task is enabled
@@ -104,10 +101,8 @@ class AnalysisService:
             "schedule_time": schedule_time,
             "schedule_date": schedule_date,
             "cron_expression": cron_expression,
-            "timezone": timezone,
             "enabled": enabled,
-            "status": "created",
-            "language": language
+            "status": "created"
         }
         
         # Create task using unified API
@@ -192,6 +187,17 @@ class AnalysisService:
             return self.scheduled_task_repo.list_scheduled_tasks(user_id, status, schedule_type, limit)
         except Exception as e:
             logger.error(f"Error listing scheduled tasks: {e}")
+            return []
+    
+    def list_scheduled_tasks_by_ticker(self, ticker: str, user_id: str = "demo_user", limit: int = 50) -> List[Dict[str, Any]]:
+        """List scheduled tasks filtered by ticker symbol."""
+        try:
+            logger.info(f"Service: Getting tasks for ticker={ticker.upper()}, user_id={user_id}, limit={limit}")
+            result = self.scheduled_task_repo.get_tasks_by_ticker(ticker.upper(), user_id, limit)
+            logger.info(f"Service: Retrieved {len(result)} tasks")
+            return result
+        except Exception as e:
+            logger.error(f"Error listing scheduled tasks by ticker {ticker}: {e}")
             return []
     
     def delete_scheduled_task(self, task_id: str) -> bool:
