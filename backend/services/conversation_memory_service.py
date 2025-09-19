@@ -11,7 +11,9 @@ from typing import Dict, Any, List, Optional, Tuple
 from dataclasses import dataclass, asdict
 from collections import deque
 
-from backend.database.storage_service import DatabaseStorage
+from backend.repositories import (
+    ConversationRepository, ChatMessageRepository, SessionLocal
+)
 
 logger = logging.getLogger(__name__)
 
@@ -76,6 +78,7 @@ class ConversationState:
     # 新增字段以匹配数据库模型
     task_id: Optional[str] = None
     analysis_id: Optional[str] = None
+    execution_type: str = "manual"  # manual, scheduled
     last_interaction: Optional[str] = None
     is_finalized: bool = False
     
@@ -109,7 +112,8 @@ class ConversationMemoryService:
     """
     
     def __init__(self):
-        self.storage = DatabaseStorage()
+        self.conversation_repo = ConversationRepository(SessionLocal)
+        self.chat_message_repo = ChatMessageRepository(SessionLocal)
     
     def create_conversation_session(self, 
                                   user_id: str,
@@ -117,7 +121,8 @@ class ConversationMemoryService:
                                   analysis_date: str,
                                   analysts: List[str],
                                   research_depth: int = 1,
-                                  llm_config: Dict[str, Any] = None) -> str:
+                                  llm_config: Dict[str, Any] = None,
+                                  execution_type: str = "manual") -> str:
         """创建新的会话session"""
         session_id = str(uuid.uuid4())
         timestamp = datetime.now().isoformat()
@@ -172,6 +177,7 @@ class ConversationMemoryService:
             final_report=None,
             final_state=None,
             processed_signal=None,
+            execution_type=execution_type,
             created_at=timestamp,
             updated_at=timestamp
         )
@@ -194,7 +200,7 @@ class ConversationMemoryService:
         """获取会话状态"""
         try:
             # 从数据库读取会话状态
-            state_data = self.storage.get_conversation_state(session_id)
+            state_data = self.conversation_repo.get_conversation_state(session_id)
             if state_data:
                 return ConversationState(**state_data)
             return None
@@ -418,7 +424,7 @@ class ConversationMemoryService:
                 raise Exception(f"Session {session_id} not found")
             
             # 保存到数据库 - 使用专门的聊天消息存储
-            saved_message_id = self.storage.save_chat_message(
+            saved_message_id = self.chat_message_repo.save_chat_message(
                 session_id=session_id,
                 user_id=state.user_id,
                 message_data=asdict(chat_message)
@@ -526,7 +532,7 @@ class ConversationMemoryService:
             # 总是更新updated_at为当前时间
             state_dict['updated_at'] = now
             
-            success = self.storage.save_conversation_state(
+            success = self.conversation_repo.save_conversation_state(
                 session_id=state.session_id,
                 user_id=state.user_id,
                 ticker=state.ticker,
@@ -541,7 +547,7 @@ class ConversationMemoryService:
     def list_user_conversations(self, user_id: str, limit: int = 20) -> List[Dict[str, Any]]:
         """列出用户的会话历史"""
         try:
-            return self.storage.list_conversation_states(user_id=user_id, limit=limit)
+            return self.conversation_repo.list_conversation_states(user_id=user_id, limit=limit)
         except Exception as e:
             logger.error(f"Error listing conversations for user {user_id}: {e}")
             return []
@@ -561,6 +567,7 @@ class ConversationMemoryService:
                     "session_id": state.session_id,
                     "ticker": state.ticker,
                     "analysis_date": state.analysis_date,
+                    "execution_type": state.execution_type,
                     "created_at": state.created_at,
                     "updated_at": state.updated_at
                 },
@@ -595,7 +602,7 @@ class ConversationMemoryService:
     def get_chat_messages(self, session_id: str, limit: int = 100) -> List[Dict[str, Any]]:
         """获取会话的聊天消息"""
         try:
-            return self.storage.get_chat_messages(session_id=session_id, limit=limit)
+            return self.chat_message_repo.get_chat_messages(session_id=session_id, limit=limit)
         except Exception as e:
             logger.error(f"Error getting chat messages for session {session_id}: {e}")
             return []

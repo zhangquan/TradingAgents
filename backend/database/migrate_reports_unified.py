@@ -17,7 +17,7 @@ import uuid
 from datetime import datetime
 
 # Import the database and models
-from backend.database.storage_service import DatabaseStorage
+# Note: Migration script - no longer needed with Repository pattern
 import os
 
 def migrate_reports_to_unified_structure():
@@ -26,7 +26,9 @@ def migrate_reports_to_unified_structure():
     to unified reports with sections field.
     """
     
-    storage = DatabaseStorage()
+    # Migration no longer needed with Repository pattern
+    print("Migration script is deprecated - using Repository pattern now")
+    return
     DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./data/tradingagents.db")
     engine = create_engine(DATABASE_URL)
     Session = sessionmaker(bind=engine)

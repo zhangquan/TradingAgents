@@ -14,7 +14,7 @@ sys.path.insert(0, str(project_root))
 
 from backend.database.database import init_database, engine
 from backend.database.models import User, UserConfig
-from backend.database.storage_service import DatabaseStorage
+from backend.repositories import UserRepository, UserConfigRepository
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -24,10 +24,11 @@ logger = logging.getLogger(__name__)
 def create_default_user():
     """Create default demo_user if it doesn't exist."""
     try:
-        storage = DatabaseStorage()
+        user_repo = UserRepository()
+        user_config_repo = UserConfigRepository()
         
         # Check if demo_user exists
-        user = storage.get_user("demo_user")
+        user = user_repo.get_user_by_user_id("demo_user")
         if user:
             logger.info("Demo user already exists")
             return True
@@ -39,7 +40,7 @@ def create_default_user():
             "status": "active"
         }
         
-        success = storage.create_user("demo_user", user_data)
+        success = user_repo.create_user("demo_user", user_data)
         if success:
             logger.info("Created demo user")
             
@@ -55,7 +56,7 @@ def create_default_user():
                 "user_id": "demo_user"
             }
             
-            storage.save_user_config("demo_user", default_config)
+            user_config_repo.save_user_config("demo_user", default_config)
             logger.info("Created default user config")
             
             return True
@@ -71,11 +72,9 @@ def create_default_user():
 def migrate_existing_data():
     """Migrate existing file-based data to database (optional)."""
     try:
-        # Import the old LocalStorage for migration
-        from backend.storage import LocalStorage
-        
-        old_storage = LocalStorage()
-        new_storage = DatabaseStorage()
+        # Migration is no longer needed as we use Repository pattern
+        logger.info("Migration from LocalStorage to Repository pattern is complete - skipping.")
+        return
         
         logger.info("Starting data migration from files to database...")
         

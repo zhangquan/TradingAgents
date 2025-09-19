@@ -143,6 +143,7 @@ export interface AnalysisReportItem {
   execution_completed_at?: string
   execution_duration_seconds?: number
   execution_duration_formatted?: string
+  execution_type?: string  // manual, scheduled
 }
 
 export interface TaskInfo {
@@ -213,6 +214,7 @@ export interface ConversationDetail {
     session_id: string
     ticker: string
     analysis_date: string
+    execution_type: string
     status: string
     created_at: string
     updated_at: string
@@ -378,19 +380,8 @@ export const apiService = {
     return response.data
   },
 
-  async getAnalysisHistory(ticker?: string, limit: number = 50) {
-    const params = new URLSearchParams()
-    if (ticker) params.append('ticker', ticker)
-    params.append('limit', limit.toString())
-    
-    const response = await api.get(`/analysis/history?${params}`)
-    return response.data
-  },
 
-  async getAnalysis(analysisId: string) {
-    const response = await api.get(`/analysis/${analysisId}`)
-    return response.data
-  },
+
 
   // Task API (only scheduled tasks now)
   async createTask(request: ScheduledAnalysisRequest): Promise<ScheduledTaskResponse> {

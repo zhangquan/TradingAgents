@@ -16,7 +16,10 @@ from typing import Dict, Any, List, Optional, Tuple
 
 from tradingagents.graph.trading_graph import TradingAgentsGraph
 from tradingagents.default_config import DEFAULT_CONFIG
-from backend.database.storage_service import DatabaseStorage
+from backend.repositories import (
+    UserConfigRepository, ScheduledTaskRepository, ReportRepository,
+    SystemRepository, SessionLocal
+)
 from backend.services.conversation_memory_service import conversation_memory_service
 
 logger = logging.getLogger(__name__)
@@ -30,7 +33,10 @@ class AnalysisRunnerService:
     
     def __init__(self):
         """Initialize the analysis runner service."""
-        self.storage = DatabaseStorage()
+        self.user_config_repo = UserConfigRepository(SessionLocal)
+        self.scheduled_task_repo = ScheduledTaskRepository(SessionLocal)
+        self.report_repo = ReportRepository(SessionLocal)
+        self.system_repo = SystemRepository(SessionLocal)
         self.trading_graphs = {}  # Local cache for trading graph instances
     
     def get_trading_graph(self, config: Dict[str, Any]) -> TradingAgentsGraph:
@@ -58,7 +64,7 @@ class AnalysisRunnerService:
     
     def get_user_config_with_defaults(self, user_id: str) -> Dict[str, Any]:
         """Get user configuration with fallback to system defaults."""
-        user_config = self.storage.get_user_config(user_id)
+        user_config = self.user_config_repo.get_user_config(user_id)
         
         # Use user preferences or fallback to defaults from DEFAULT_CONFIG
         return {
@@ -177,7 +183,8 @@ class AnalysisRunnerService:
                                      analysts: List[str],
                                      research_depth: int = 1,
                                      user_id: str = "demo_user",
-                                     enable_memory: bool = True) -> Dict[str, Any]:
+                                     enable_memory: bool = True,
+                                     execution_type: str = "manual") -> Dict[str, Any]:
         """
         Run analysis with conversation memory support for session persistence.
         
@@ -198,10 +205,10 @@ class AnalysisRunnerService:
         start_timestamp = time.time()
         
         # Update task status
-        self.storage.update_scheduled_task_status(task_id, "running")
+        self.scheduled_task_repo.update_scheduled_task_status(task_id, "running")
         
         # Get language from task data if available
-        task_data = self.storage.get_scheduled_task(task_id)
+        task_data = self.scheduled_task_repo.get_scheduled_task(task_id)
         language = task_data.get("language", "en-US") if task_data else "en-US"
         
         # Prepare configuration
@@ -212,14 +219,15 @@ class AnalysisRunnerService:
         
         session_id = None
         if enable_memory:
-            # Create conversation session
+            # Create conversation session with execution type
             session_id = conversation_memory_service.create_conversation_session(
                 user_id=user_id,
                 ticker=ticker,
                 analysis_date=analysis_date,
                 analysts=analysts,
                 research_depth=research_depth,
-                llm_config=config
+                llm_config=config,
+                execution_type=execution_type
             )
             
             # Add session_id to config for tracking
@@ -252,7 +260,7 @@ class AnalysisRunnerService:
             # Save unified report with all sections and timing information
             non_empty_reports = {report_type: content for report_type, content in reports.items() if content}
             if non_empty_reports:
-                self.storage.save_unified_report(
+                self.report_repo.save_unified_report(
                     analysis_id=analysis_id,
                     user_id=user_id,
                     ticker=ticker,
@@ -274,13 +282,13 @@ class AnalysisRunnerService:
                 task_result["session_id"] = session_id
             
             # Update task with results and mark as completed
-            self.storage.update_scheduled_task_status(task_id, "completed", 
+            self.scheduled_task_repo.update_scheduled_task_status(task_id, "completed", 
                                           analysis_id=analysis_id,
                                           result_data=task_result,
                                           progress=100)
             
             # Log system event for successful completion
-            self.storage.log_system_event("analysis_completed", {
+            self.system_repo.log_system_event("analysis_completed", {
                 "task_id": task_id,
                 "analysis_id": analysis_id,
                 "ticker": ticker,
@@ -300,7 +308,7 @@ class AnalysisRunnerService:
             logger.error(f"Analysis failed for task {task_id}: {e}")
             
             # Update task status to failed
-            self.storage.update_scheduled_task_status(task_id, "failed", 
+            self.scheduled_task_repo.update_scheduled_task_status(task_id, "failed", 
                                           error_message=str(e))
             
             # Update conversation memory if enabled
@@ -344,10 +352,10 @@ class AnalysisRunnerService:
         start_timestamp = time.time()
         
         # Update task status
-        self.storage.update_scheduled_task_status(task_id, "running")
+        self.scheduled_task_repo.update_scheduled_task_status(task_id, "running")
         
         # Get language from task data if available
-        task_data = self.storage.get_scheduled_task(task_id)
+        task_data = self.scheduled_task_repo.get_scheduled_task(task_id)
         language = task_data.get("language", "en-US") if task_data else "en-US"
         
         # Prepare configuration
@@ -377,7 +385,7 @@ class AnalysisRunnerService:
         # Filter out empty reports
         non_empty_reports = {report_type: content for report_type, content in reports.items() if content}
         if non_empty_reports:
-            self.storage.save_unified_report(
+            self.report_repo.save_unified_report(
                 analysis_id=analysis_id,
                 user_id=user_id,
                 ticker=ticker,
@@ -393,13 +401,13 @@ class AnalysisRunnerService:
         task_result = self.create_task_result(analysis_id, reports, processed_signal)
         print(task_result)
         # Update task with results and mark as completed
-        self.storage.update_scheduled_task_status(task_id, "completed", 
+        self.scheduled_task_repo.update_scheduled_task_status(task_id, "completed", 
                                       analysis_id=analysis_id,
                                       result_data=task_result,
                                       progress=100)
         
         # Log system event for successful completion
-        self.storage.log_system_event("analysis_completed", {
+        self.system_repo.log_system_event("analysis_completed", {
             "task_id": task_id,
             "analysis_id": analysis_id,
             "ticker": ticker,

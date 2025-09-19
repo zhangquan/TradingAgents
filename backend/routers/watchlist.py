@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 from typing import Dict, Any, List, Optional
 import logging
 
-from backend.database.storage_service import DatabaseStorage
+from backend.repositories import WatchlistRepository, SessionLocal
 from backend.services.analysis_services import analysis_service
 from backend.services.scheduler_service import scheduler_service
 
@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 # Initialize router and storage
 router = APIRouter(prefix="/watchlist", tags=["watchlist"])
-storage = DatabaseStorage()
+watchlist_repo = WatchlistRepository(SessionLocal)
 
 # Pydantic models
 class WatchlistItemRequest(BaseModel):
@@ -44,7 +44,7 @@ class WatchlistResponse(BaseModel):
 async def get_watchlist(user_id: str = "demo_user"):
     """Get user's watchlist ticker symbols"""
     try:
-        watchlist = storage.get_user_watchlist(user_id)
+        watchlist = watchlist_repo.get_user_watchlist(user_id)
         return watchlist
     except Exception as e:
         logger.error(f"Error getting watchlist for user {user_id}: {e}")
@@ -54,7 +54,7 @@ async def get_watchlist(user_id: str = "demo_user"):
 async def get_watchlist_detailed(user_id: str = "demo_user"):
     """Get user's watchlist with detailed information"""
     try:
-        watchlist = storage.get_user_watchlist_detailed(user_id)
+        watchlist = watchlist_repo.get_user_watchlist_detailed(user_id)
         return watchlist
     except Exception as e:
         logger.error(f"Error getting detailed watchlist for user {user_id}: {e}")
@@ -65,7 +65,7 @@ async def add_to_watchlist(item: WatchlistItemRequest, user_id: str = "demo_user
     """Add a stock to user's watchlist and create analysis task"""
     try:
         # Step 1: Add to watchlist
-        success = storage.add_to_watchlist(
+        success = watchlist_repo.add_to_watchlist(
             user_id=user_id,
             symbol=item.ticker,
             notes=item.notes,
@@ -150,7 +150,7 @@ async def remove_from_watchlist(ticker: str, user_id: str = "demo_user"):
     """Remove a stock from user's watchlist and delete related analysis tasks"""
     try:
         # Step 1: Remove from watchlist
-        success = storage.remove_from_watchlist(user_id, ticker)
+        success = watchlist_repo.remove_from_watchlist(user_id, ticker)
         
         if not success:
             raise HTTPException(
@@ -232,7 +232,7 @@ async def update_watchlist_item(ticker: str, updates: WatchlistItemUpdate, user_
         if not update_data:
             raise HTTPException(status_code=400, detail="No updates provided")
         
-        success = storage.update_watchlist_item(user_id, ticker, update_data)
+        success = watchlist_repo.update_watchlist_item(user_id, ticker, update_data)
         
         if not success:
             raise HTTPException(
@@ -261,7 +261,7 @@ async def add_bulk_to_watchlist(request: BulkWatchlistRequest, user_id: str = "d
         
         for ticker in request.tickers:
             try:
-                success = storage.add_to_watchlist(user_id, ticker)
+                success = watchlist_repo.add_to_watchlist(user_id, ticker)
                 result = {
                     "ticker": ticker.upper(),
                     "success": success,
@@ -332,7 +332,7 @@ async def add_bulk_to_watchlist(request: BulkWatchlistRequest, user_id: str = "d
 async def replace_watchlist(request: BulkWatchlistRequest, user_id: str = "demo_user"):
     """Replace user's entire watchlist"""
     try:
-        success = storage.update_watchlist(user_id, request.tickers)
+        success = watchlist_repo.update_watchlist(user_id, request.tickers)
         
         if not success:
             raise HTTPException(status_code=500, detail="Failed to update watchlist")
@@ -353,7 +353,7 @@ async def replace_watchlist(request: BulkWatchlistRequest, user_id: str = "demo_
 async def check_in_watchlist(ticker: str, user_id: str = "demo_user"):
     """Check if a stock is in user's watchlist"""
     try:
-        in_watchlist = storage.is_symbol_in_watchlist(user_id, ticker)
+        in_watchlist = watchlist_repo.is_symbol_in_watchlist(user_id, ticker)
         
         return {
             "ticker": ticker.upper(),
@@ -371,7 +371,7 @@ async def get_watchlist_by_priority(priority: int, user_id: str = "demo_user"):
         if priority < 1 or priority > 5:
             raise HTTPException(status_code=400, detail="Priority must be between 1 and 5")
         
-        detailed_watchlist = storage.get_user_watchlist_detailed(user_id)
+        detailed_watchlist = watchlist_repo.get_user_watchlist_detailed(user_id)
         filtered_items = [item for item in detailed_watchlist if item["priority"] == priority]
         
         return {

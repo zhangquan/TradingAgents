@@ -16,10 +16,12 @@ import {
   AlertCircle,
   Save,
   RefreshCw,
-  TrendingUp
+  TrendingUp,
+  User
 } from 'lucide-react'
 import { apiService, AnalysisConfig } from '@/lib/api'
 import { toast } from 'sonner'
+import { UserPreferencesSettings } from '@/components/UserPreferencesSettings'
 
 
 
@@ -36,9 +38,7 @@ export default function SettingsPage() {
     shallow_thinker: '',
     deep_thinker: '',
     default_research_depth: 1,
-    default_analysts: [] as string[],
-    default_language: '',
-    report_language: ''
+    default_analysts: [] as string[]
   })
 
   useEffect(() => {
@@ -86,9 +86,7 @@ export default function SettingsPage() {
         shallow_thinker: config.shallow_thinker,
         deep_thinker: config.deep_thinker,
         default_research_depth: config.research_depth,
-        default_analysts: config.analysts,
-        default_language: userPrefs.default_language || 'auto',
-        report_language: userPrefs.report_language || 'auto'
+        default_analysts: config.analysts
       })
     } catch (error) {
       console.error('Failed to load analysis config:', error)
@@ -173,8 +171,12 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <Tabs defaultValue="ai-models" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+      <Tabs defaultValue="user-preferences" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="user-preferences" className="flex items-center space-x-2">
+            <User className="h-4 w-4" />
+            <span>用户偏好</span>
+          </TabsTrigger>
           <TabsTrigger value="ai-models" className="flex items-center space-x-2">
             <Brain className="h-4 w-4" />
             <span>AI 模型</span>
@@ -189,7 +191,10 @@ export default function SettingsPage() {
           </TabsTrigger>
         </TabsList>
 
-
+        {/* User Preferences */}
+        <TabsContent value="user-preferences" className="space-y-6">
+          <UserPreferencesSettings />
+        </TabsContent>
 
         {/* AI Models Configuration */}
         <TabsContent value="ai-models" className="space-y-6">
@@ -319,58 +324,15 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              {/* Language Settings */}
+              {/* Language Settings Notice */}
               <div className="pt-6 border-t">
                 <h4 className="font-medium mb-4">语言设置</h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="default-language">默认语言</Label>
-                    <Select 
-                      value={modelFormData.default_language} 
-                      onValueChange={(value) => setModelFormData(prev => ({...prev, default_language: value}))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="选择默认语言" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="auto">自动检测</SelectItem>
-                        <SelectItem value="zh-CN">简体中文</SelectItem>
-                        <SelectItem value="zh-TW">繁体中文</SelectItem>
-                        <SelectItem value="en-US">English</SelectItem>
-                        <SelectItem value="ja-JP">日本語</SelectItem>
-                        <SelectItem value="ko-KR">한국어</SelectItem>
-                        <SelectItem value="fr-FR">Français</SelectItem>
-                        <SelectItem value="de-DE">Deutsch</SelectItem>
-                        <SelectItem value="es-ES">Español</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="report-language">报告语言</Label>
-                    <Select 
-                      value={modelFormData.report_language} 
-                      onValueChange={(value) => setModelFormData(prev => ({...prev, report_language: value}))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="选择报告语言" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="auto">自动检测</SelectItem>
-                        <SelectItem value="zh-CN">简体中文</SelectItem>
-                        <SelectItem value="zh-TW">繁体中文</SelectItem>
-                        <SelectItem value="en-US">English</SelectItem>
-                        <SelectItem value="ja-JP">日本語</SelectItem>
-                        <SelectItem value="ko-KR">한국어</SelectItem>
-                        <SelectItem value="fr-FR">Français</SelectItem>
-                        <SelectItem value="de-DE">Deutsch</SelectItem>
-                        <SelectItem value="es-ES">Español</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <p className="text-sm text-gray-500 mt-2">
-                  设置系统默认语言和分析报告的输出语言。选择"自动检测"将根据浏览器语言设置自动选择。
-                </p>
+                <Alert>
+                  <User className="h-4 w-4" />
+                  <AlertDescription>
+                    AI报告的语言设置已统一移至"用户偏好"标签页。所有需要语言设置的功能（包括AI报告生成、界面显示等）都将使用用户偏好中的统一语言配置。
+                  </AlertDescription>
+                </Alert>
               </div>
 
               <div className="pt-4 border-t">

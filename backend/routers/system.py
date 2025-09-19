@@ -5,14 +5,17 @@ import logging
 import os
 from datetime import datetime
 
-from backend.database.storage_service import DatabaseStorage
+from backend.repositories import (
+    SystemRepository, UserConfigRepository, SessionLocal
+)
 
 # Configure logging
 logger = logging.getLogger(__name__)
 
-# Initialize router and storage
+# Initialize router and repositories
 router = APIRouter(prefix="/system", tags=["system"])
-storage = DatabaseStorage()
+system_repo = SystemRepository(SessionLocal)
+user_config_repo = UserConfigRepository(SessionLocal)
 
 # Pydantic models for user preferences (not API keys)
 class UserPreferencesRequest(BaseModel):
@@ -31,7 +34,7 @@ class UserPreferencesRequest(BaseModel):
 async def get_config():
     """Get current system configuration and status"""
     # Get user preferences from storage
-    user_config = storage.get_user_config("demo_user")
+    user_config = user_config_repo.get_user_config("demo_user")
     
     # Return system status and configuration (without sensitive API keys)
     config = {
@@ -77,6 +80,8 @@ async def update_user_preferences(preferences: UserPreferencesRequest, request: 
             pref_updates["notification_settings"] = preferences.notification_settings
         if preferences.default_language:
             pref_updates["default_language"] = preferences.default_language
+            # Synchronize report_language with default_language for unified language setting
+            pref_updates["report_language"] = preferences.default_language
         if preferences.report_language:
             pref_updates["report_language"] = preferences.report_language
         
@@ -93,7 +98,7 @@ async def update_user_preferences(preferences: UserPreferencesRequest, request: 
                 logger.info(f"Auto-detected language from browser: {accept_language} -> {normalized_language}")
             
         # Save preferences to storage
-        storage.save_user_config("demo_user", pref_updates)
+        user_config_repo.save_user_config("demo_user", pref_updates)
         
         # Log system event
         storage.log_system_event("preferences_updated", {

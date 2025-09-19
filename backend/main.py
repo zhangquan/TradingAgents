@@ -7,7 +7,7 @@ import logging
 import uvicorn
 import os
 from datetime import datetime
-from backend.database.storage_service import DatabaseStorage
+from backend.repositories import CacheRepository, SystemRepository, SessionLocal
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -32,18 +32,19 @@ app.add_middleware(
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Initialize storage
-storage = DatabaseStorage()
+# Initialize repositories
+cache_repo = CacheRepository()
+system_repo = SystemRepository()
 
 # Initialize and start scheduler service during app startup
 @app.on_event("startup")
 async def startup_event():
     """Application startup event handler"""
     # Clear expired cache on startup
-    storage.clear_expired_cache()
+    cache_repo.clear_expired_cache()
     
     # Log startup event
-    storage.log_system_event("server_startup", {
+    system_repo.log_system_event("server_startup", {
         "timestamp": datetime.now().isoformat(),
         "version": "1.0.0"
     })
@@ -109,9 +110,10 @@ async def health_check():
 @app.get("/stats")
 async def get_runtime_stats():
     """Get runtime statistics"""
-    # Get task statistics from database
-    active_tasks = storage.list_tasks(status="running", limit=1000)
-    completed_tasks = storage.list_tasks(status="completed", limit=1000)
+    # Get task statistics from scheduler service
+    from backend.services.analysis_services import analysis_service
+    active_tasks = analysis_service.list_scheduled_tasks(status="running", limit=1000)
+    completed_tasks = analysis_service.list_scheduled_tasks(status="completed", limit=1000)
     
     return {
         "active_tasks": len(active_tasks),

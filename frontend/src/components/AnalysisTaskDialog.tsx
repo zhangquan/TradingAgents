@@ -21,6 +21,10 @@ import {
   ScheduledAnalysisRequest 
 } from '@/lib/api'
 import { toast } from 'sonner'
+import { 
+  getSystemTimeZone, 
+  getTimezoneOffset 
+} from '@/lib/utils'
 
 interface AnalysisTaskDialogProps {
   open: boolean
@@ -53,7 +57,7 @@ export function AnalysisTaskDialog({
     research_depth: 1,
     schedule_type: 'once',
     schedule_time: '09:00',
-    timezone: 'UTC',
+    timezone: getSystemTimeZone(), // 使用系统设置的时区
     enabled: true
   })
 
@@ -70,6 +74,11 @@ export function AnalysisTaskDialog({
   useEffect(() => {
     setFormData(prev => ({ ...prev, ticker }))
   }, [ticker])
+
+  // 确保使用系统时区
+  useEffect(() => {
+    setFormData(prev => ({ ...prev, timezone: getSystemTimeZone() }))
+  }, [open])
 
   const loadAnalysts = async () => {
     try {
@@ -175,7 +184,7 @@ export function AnalysisTaskDialog({
         research_depth: defaultConfig?.research_depth || 1,
         schedule_type: 'once',
         schedule_time: '09:00',
-        timezone: 'UTC',
+        timezone: getSystemTimeZone(), // 重置时使用系统时区
         enabled: true
       })
     } catch (error) {
@@ -266,32 +275,58 @@ export function AnalysisTaskDialog({
 
           {/* Schedule Configuration (not for immediate mode) */}
           {mode !== 'immediate' && (
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="schedule-type">执行频率</Label>
-                <Select 
-                  value={formData.schedule_type} 
-                  onValueChange={(value) => setFormData(prev => ({...prev, schedule_type: value}))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="once">执行一次</SelectItem>
-                    <SelectItem value="daily">每日执行</SelectItem>
-                    <SelectItem value="weekly">每周执行</SelectItem>
-                    <SelectItem value="monthly">每月执行</SelectItem>
-                  </SelectContent>
-                </Select>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="schedule-type">执行频率</Label>
+                  <Select 
+                    value={formData.schedule_type} 
+                    onValueChange={(value) => setFormData(prev => ({...prev, schedule_type: value}))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="once">执行一次</SelectItem>
+                      <SelectItem value="daily">每日执行</SelectItem>
+                      <SelectItem value="weekly">每周执行</SelectItem>
+                      <SelectItem value="monthly">每月执行</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="schedule-time">执行时间</Label>
+                  <Input
+                    id="schedule-time"
+                    type="time"
+                    value={formData.schedule_time}
+                    onChange={(e) => setFormData(prev => ({...prev, schedule_time: e.target.value}))}
+                  />
+                </div>
               </div>
-              <div>
-                <Label htmlFor="schedule-time">执行时间</Label>
-                <Input
-                  id="schedule-time"
-                  type="time"
-                  value={formData.schedule_time}
-                  onChange={(e) => setFormData(prev => ({...prev, schedule_time: e.target.value}))}
-                />
+              
+              {/* Timezone Display */}
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-blue-600" />
+                    <span className="text-sm font-medium text-blue-800">系统时区</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-blue-700">{getSystemTimeZone()}</span>
+                    <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded">
+                      {getTimezoneOffset(getSystemTimeZone())}
+                    </span>
+                  </div>
+                </div>
+                {formData.schedule_time && (
+                  <div className="text-xs text-blue-600 mt-2">
+                    任务将在 {formData.schedule_time} ({getTimezoneOffset(getSystemTimeZone())}) 执行
+                  </div>
+                )}
+                <div className="text-xs text-gray-600 mt-1">
+                  时区设置可在用户偏好中修改
+                </div>
               </div>
             </div>
           )}

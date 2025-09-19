@@ -4,7 +4,7 @@ from typing import Optional, List, Dict, Any
 from datetime import datetime
 import logging
 
-from backend.storage import LocalStorage
+from backend.repositories import NotificationRepository
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
 logger = logging.getLogger(__name__)
@@ -27,8 +27,8 @@ class NotificationResponse(BaseModel):
     created_at: str
     metadata: Optional[Dict[str, Any]] = None
 
-# Initialize storage
-storage = LocalStorage()
+# Initialize notification repository
+notification_repo = NotificationRepository()
 
 @router.get("/", response_model=List[NotificationResponse])
 async def get_notifications(
@@ -38,7 +38,7 @@ async def get_notifications(
 ):
     """Get user notifications"""
     try:
-        notifications = storage.get_notifications(user_id, unread_only, limit)
+        notifications = notification_repo.get_notifications(user_id, unread_only, limit)
         return notifications
     except Exception as e:
         logger.error(f"Error getting notifications: {e}")
@@ -48,7 +48,7 @@ async def get_notifications(
 async def create_notification(notification: NotificationCreate):
     """Create a new notification"""
     try:
-        notification_id = storage.save_notification(
+        notification_id = notification_repo.save_notification(
             user_id=notification.user_id,
             title=notification.title,
             message=notification.message,
@@ -67,7 +67,7 @@ async def mark_notification_read(
 ):
     """Mark a notification as read"""
     try:
-        success = storage.mark_notification_read(user_id, notification_id)
+        success = notification_repo.mark_notification_read(user_id, notification_id)
         if not success:
             raise HTTPException(status_code=404, detail="Notification not found")
         return {"message": "Notification marked as read"}
@@ -83,8 +83,8 @@ async def get_notification_stats(
 ):
     """Get notification statistics for a user"""
     try:
-        all_notifications = storage.get_notifications(user_id, unread_only=False, limit=1000)
-        unread_notifications = storage.get_notifications(user_id, unread_only=True, limit=1000)
+        all_notifications = notification_repo.get_notifications(user_id, unread_only=False, limit=1000)
+        unread_notifications = notification_repo.get_notifications(user_id, unread_only=True, limit=1000)
         
         return {
             "total": len(all_notifications),

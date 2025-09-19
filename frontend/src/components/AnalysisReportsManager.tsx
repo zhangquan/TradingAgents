@@ -18,7 +18,9 @@ import {
   Clock,
   FolderOpen,
   Search,
-  X
+  X,
+  User,
+  Timer
 } from 'lucide-react'
 import { apiService, AnalysisReportItem } from '@/lib/api'
 import { toast } from 'sonner'
@@ -384,6 +386,31 @@ export function AnalysisReportsManager({ initialTicker = '' }: AnalysisReportsMa
                              report.report_type === 'final_trade_decision' ? '交易决策' :
                              report.report_type || '分析报告'}
                           </Badge>
+                          
+                          {/* 执行类型标识 */}
+                          {report.execution_type && (
+                            <Badge 
+                              variant={report.execution_type === 'manual' ? 'default' : 'secondary'}
+                              className={`text-xs flex items-center gap-1 ${
+                                report.execution_type === 'manual' 
+                                  ? 'bg-blue-100 text-blue-800 border-blue-200' 
+                                  : 'bg-green-100 text-green-800 border-green-200'
+                              }`}
+                            >
+                              {report.execution_type === 'manual' ? (
+                                <>
+                                  <User className="h-3 w-3" />
+                                  手动执行
+                                </>
+                              ) : (
+                                <>
+                                  <Timer className="h-3 w-3" />
+                                  自动执行
+                                </>
+                              )}
+                            </Badge>
+                          )}
+                          
                           {report.legacy && (
                             <Badge variant="secondary" className="text-xs">
                               旧版

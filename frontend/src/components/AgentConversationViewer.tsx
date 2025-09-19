@@ -19,7 +19,8 @@ import {
   Target,
   DollarSign,
   Settings,
-  Clock
+  Clock,
+  Timer
 } from 'lucide-react'
 import { apiService, ConversationDetail } from '@/lib/api'
 import { toast } from 'sonner'
@@ -157,6 +158,29 @@ export function AgentConversationViewer({ sessionId, className = '' }: AgentConv
                 <Badge className={getAgentStatusColor(session_info.status)}>
                   {session_info.status === 'completed' ? '已完成' : 
                    session_info.status === 'active' ? '进行中' : session_info.status}
+                </Badge>
+              </div>
+              <div>
+                <div className="text-sm text-gray-500">执行类型</div>
+                <Badge 
+                  variant={(session_info.execution_type || 'manual') === 'manual' ? 'default' : 'secondary'}
+                  className={`text-xs flex items-center gap-1 w-fit ${
+                    (session_info.execution_type || 'manual') === 'manual' 
+                      ? 'bg-blue-100 text-blue-800 border-blue-200' 
+                      : 'bg-green-100 text-green-800 border-green-200'
+                  }`}
+                >
+                  {(session_info.execution_type || 'manual') === 'manual' ? (
+                    <>
+                      <User className="h-3 w-3" />
+                      手动执行
+                    </>
+                  ) : (
+                    <>
+                      <Timer className="h-3 w-3" />
+                      自动执行
+                    </>
+                  )}
                 </Badge>
               </div>
               <div>

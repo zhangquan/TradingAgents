@@ -12,7 +12,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.jobstores.base import JobLookupError
 
-from backend.database.storage_service import DatabaseStorage
+from backend.repositories import ScheduledTaskRepository, SessionLocal
 from backend.services.analysis_runner_service import AnalysisRunnerService
 
 logger = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ class SchedulerService:
     
     def __init__(self):
         self.scheduler = BackgroundScheduler()
-        self.storage = DatabaseStorage()
+        self.scheduled_task_repo = ScheduledTaskRepository(SessionLocal)
         self.scheduled_tasks: Dict[str, Dict[str, Any]] = {}
         self._started = False
         # Initialize analysis runner service for analysis execution
@@ -55,7 +55,7 @@ class SchedulerService:
         """Load scheduled tasks from persistent storage and register with scheduler."""
         try:
             # Load from storage using unified API
-            loaded_tasks = self.storage.list_scheduled_tasks(limit=1000)
+            loaded_tasks = self.scheduled_task_repo.list_scheduled_tasks(limit=1000)
             
             # Convert to dict format for compatibility
             task_dict = {}
@@ -380,7 +380,7 @@ class SchedulerService:
     def refresh_scheduled_tasks(self) -> bool:
         """Refresh scheduled tasks from storage to sync with persistent data."""
         try:
-            loaded_tasks = self.storage.list_scheduled_tasks(limit=1000)
+            loaded_tasks = self.scheduled_task_repo.list_scheduled_tasks(limit=1000)
             
             # Convert to dict format for compatibility
             task_dict = {}
@@ -436,7 +436,8 @@ class SchedulerService:
                 analysis_date=analysis_date,
                 analysts=analysts,
                 research_depth=research_depth,
-                schedule_id=schedule_id
+                schedule_id=schedule_id,
+                execution_type="scheduled"  # 标记为自动执行
             ))
             
             logger.info(f"Triggered scheduled analysis {execution_id} for schedule {schedule_id}")
@@ -447,7 +448,8 @@ class SchedulerService:
     
     async def _execute_analysis_background(self, execution_id: str, ticker: str, 
                                          analysis_date: str, analysts: List[str], 
-                                         research_depth: int, schedule_id: str) -> None:
+                                         research_depth: int, schedule_id: str,
+                                         execution_type: str = "scheduled") -> None:
         """统一的背景任务执行器，处理所有类型的分析任务."""
         try:
             logger.info(f"Starting analysis execution {execution_id} for schedule {schedule_id}")
@@ -460,7 +462,9 @@ class SchedulerService:
                 analysis_date=analysis_date,
                 analysts=analysts,
                 research_depth=research_depth,
-                user_id="demo_user"
+                user_id="demo_user",
+                enable_memory=True,
+                execution_type=execution_type
             )
             
             # 更新调度任务的执行状态
@@ -477,7 +481,7 @@ class SchedulerService:
             logger.error(f"Error in analysis execution {execution_id}: {e}")
             
             # 更新任务错误状态
-            self.storage.update_scheduled_task_status(execution_id, "error", error_message=str(e))
+            self.scheduled_task_repo.update_scheduled_task_status(execution_id, "error", error_message=str(e))
             
             # 如果是调度任务，也更新调度状态
             if schedule_id:
@@ -517,13 +521,15 @@ class SchedulerService:
         execution_id = f"exec_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{ticker}_{str(uuid.uuid4())[:8]}"
         
         # 启动背景任务
+        execution_type = "manual" if not schedule_id else "scheduled"
         task = asyncio.create_task(self._execute_analysis_background(
             execution_id=execution_id,
             ticker=ticker,
             analysis_date=analysis_date,
             analysts=analysts,
             research_depth=research_depth,
-            schedule_id=schedule_id
+            schedule_id=schedule_id,
+            execution_type=execution_type
         ))
         
         logger.info(f"Started analysis task {execution_id} for {ticker}")

@@ -6,16 +6,12 @@ from datetime import datetime
 
 from backend.services.analysis_services import analysis_service
 from backend.services.scheduler_service import scheduler_service
-from backend.database.storage_service import DatabaseStorage
 
 # Configure logging
 logger = logging.getLogger(__name__)
 
 # Initialize router
 router = APIRouter(prefix="/analysis", tags=["analysis"])
-
-# Initialize storage
-storage = DatabaseStorage()
 
 
 
@@ -58,7 +54,7 @@ async def list_tasks():
     """Get list of all scheduled tasks (unified model)"""
     try:
         # Get all tasks from database storage
-        all_tasks = storage.list_scheduled_tasks(limit=100)
+        all_tasks = analysis_service.list_scheduled_tasks(limit=100)
         
         # Separate tasks by type and status
         scheduled_tasks = {}
@@ -109,7 +105,7 @@ async def get_task_details(task_id: str):
     """Get details of a specific scheduled task"""
     try:
         # Get task from database storage
-        task = storage.get_scheduled_task(task_id)
+        task = analysis_service.get_scheduled_task(task_id)
         if not task:
             raise HTTPException(status_code=404, detail="Task not found")
         
@@ -174,35 +170,7 @@ async def get_analysis_config():
         logger.error(f"Error getting analysis config: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/history")
-async def get_analysis_history(ticker: str = None, limit: int = 50):
-    """Get analysis history"""
-    try:
-        user_id = "demo_user"  # Simplified without user management
-        return analysis_service.get_analysis_history(user_id, ticker, limit)
-    except Exception as e:
-        logger.error(f"Error getting analysis history: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/{analysis_id}", response_model=AnalysisResponse)
-async def get_analysis(analysis_id: str):
-    """Get specific analysis"""
-    try:
-        user_id = "demo_user"  # Simplified without user management
-        analysis = analysis_service.get_analysis_by_id(analysis_id, user_id)
-        if not analysis:
-            raise HTTPException(status_code=404, detail="Analysis not found")
-        
-        return AnalysisResponse(
-            analysis_id=analysis["analysis_id"],
-            ticker=analysis["ticker"],
-            status=analysis["status"],
-            results=analysis.get("reports"),
-            created_at=analysis["created_at"]
-        )
-    except Exception as e:
-        logger.error(f"Error getting analysis: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
 
 # Scheduled Tasks API Endpoints
 
@@ -297,7 +265,7 @@ async def update_task(task_id: str, request: ScheduledAnalysisRequest):
     """Update a scheduled task"""
     try:
         # Get existing task to validate it exists
-        existing_task = storage.get_scheduled_task(task_id)
+        existing_task = analysis_service.get_scheduled_task(task_id)
         if not existing_task:
             raise HTTPException(status_code=404, detail="Task not found")
         

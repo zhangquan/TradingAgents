@@ -9,7 +9,10 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, List, Optional, Union
 from pathlib import Path
 
-from backend.database.storage_service import DatabaseStorage
+from backend.repositories import (
+    ReportRepository, ConversationRepository,
+    WatchlistRepository, SessionLocal
+)
 
 logger = logging.getLogger(__name__)
 
@@ -18,8 +21,10 @@ class ReportsService:
     """Service class for handling trading analysis reports operations"""
     
     def __init__(self):
-        """Initialize reports service with database storage."""
-        self.storage = DatabaseStorage()
+        """Initialize reports service with repositories."""
+        self.report_repo = ReportRepository(SessionLocal)
+        self.conversation_repo = ConversationRepository(SessionLocal)
+        self.watchlist_repo = WatchlistRepository(SessionLocal)
     
     def _format_duration(self, duration_seconds: float) -> str:
         """Format duration in seconds to human-readable string."""
@@ -71,8 +76,8 @@ class ReportsService:
             if not sections or not isinstance(sections, dict):
                 raise ValueError("sections must be a non-empty dictionary")
             
-            # Create the report through storage service
-            report_id = self.storage.save_unified_report(
+            # Create the report through repository
+            report_id = self.report_repo.save_unified_report(
                 analysis_id=analysis_id,
                 user_id=user_id,
                 ticker=ticker.upper(),
@@ -80,15 +85,8 @@ class ReportsService:
                 title=title
             )
             
-            # Log report creation
-            self.storage.log_system_event("report_created", {
-                "report_id": report_id,
-                "analysis_id": analysis_id,
-                "user_id": user_id,
-                "ticker": ticker.upper(),
-                "sections_count": len(sections),
-                "title": title
-            })
+            # Note: System logging can be added through SystemRepository if needed
+            logger.info(f"Report created: {report_id} for analysis {analysis_id}")
             
             logger.info(f"Created unified report {report_id} for analysis {analysis_id}")
             return report_id
@@ -112,7 +110,7 @@ class ReportsService:
             if not report_id:
                 raise ValueError("report_id is required")
             
-            report = self.storage.get_report(user_id, report_id)
+            report = self.report_repo.get_report(user_id, report_id)
             
             if not report:
                 logger.warning(f"Report {report_id} not found for user {user_id}")
@@ -159,8 +157,8 @@ class ReportsService:
             list: List of report summaries
         """
         try:
-            # Get reports from storage
-            reports = self.storage.list_reports(
+            # Get reports from repository
+            reports = self.report_repo.list_reports(
                 user_id=user_id,
                 ticker=ticker,
                 analysis_id=analysis_id,
@@ -169,7 +167,7 @@ class ReportsService:
             
             # Enhance report data with additional fields
             enhanced_reports = []
-            user_watchlist = self.storage.get_user_watchlist(user_id) if watchlist_only else None
+            user_watchlist = self.watchlist_repo.get_user_watchlist(user_id) if watchlist_only else None
             
             for report in reports:
                 # Check if ticker is in watchlist (if filtering)
@@ -188,7 +186,9 @@ class ReportsService:
                     "status": report["status"],
                     "created_at": report["created_at"],
                     "updated_at": report["updated_at"],
-                    "in_watchlist": self.storage.is_symbol_in_watchlist(user_id, report["ticker"]),
+                    "in_watchlist": self.watchlist_repo.is_symbol_in_watchlist(user_id, report["ticker"]),
+                    # Execution type information
+                    "execution_type": report.get("execution_type", "manual"),
                     # Additional computed fields
                     "has_investment_plan": "investment_plan" in report.get("sections", {}),
                     "has_market_report": "market_report" in report.get("sections", {}),
@@ -232,7 +232,7 @@ class ReportsService:
                 raise ValueError("ticker is required")
             
             # Get reports for the ticker
-            reports = self.storage.list_reports(
+            reports = self.report_repo.list_reports(
                 user_id=user_id,
                 ticker=ticker.upper(),
                 limit=limit
@@ -253,7 +253,7 @@ class ReportsService:
                     "status": report["status"],
                     "created_at": report["created_at"],
                     "updated_at": report["updated_at"],
-                    "in_watchlist": self.storage.is_symbol_in_watchlist(user_id, report["ticker"]),
+                    "in_watchlist": self.watchlist_repo.is_symbol_in_watchlist(user_id, report["ticker"]),
                     # Execution timing information
                     "execution_started_at": report.get("analysis_started_at"),
                     "execution_completed_at": report.get("analysis_completed_at"),
@@ -285,7 +285,7 @@ class ReportsService:
                 raise ValueError("report_id is required")
             
             # Get report details before deletion
-            report = self.storage.get_report(user_id, report_id)
+            report = self.report_repo.get_report(user_id, report_id)
             if not report:
                 return {
                     "success": False,
@@ -294,7 +294,7 @@ class ReportsService:
                 }
             
             # Delete the report
-            success = self.storage.delete_report(user_id, report_id)
+            success = self.report_repo.delete_report(user_id, report_id)
             if not success:
                 return {
                     "success": False,
@@ -302,14 +302,8 @@ class ReportsService:
                     "report_id": report_id
                 }
             
-            # Log the deletion
-            self.storage.log_system_event("report_deleted", {
-                "user_id": user_id,
-                "report_id": report_id,
-                "analysis_id": report.get("analysis_id"),
-                "ticker": report.get("ticker"),
-                "title": report.get("title")
-            })
+            # Note: System logging can be added through SystemRepository if needed
+            logger.info(f"Report deleted: {report_id} for user {user_id}")
             
             logger.info(f"Deleted report {report_id} for user {user_id}")
             
@@ -403,7 +397,7 @@ class ReportsService:
         """
         try:
             # Get all reports for user
-            all_reports = self.storage.list_reports(user_id=user_id, limit=1000)
+            all_reports = self.report_repo.list_reports(user_id=user_id, limit=1000)
             
             # Calculate statistics
             total_reports = len(all_reports)
@@ -479,7 +473,7 @@ class ReportsService:
         """
         try:
             # Get all reports and filter by date
-            all_reports = self.storage.list_reports(user_id=user_id, limit=limit * 2)  # Get more to filter
+            all_reports = self.report_repo.list_reports(user_id=user_id, limit=limit * 2)  # Get more to filter
             
             # Calculate cutoff date
             cutoff_date = (datetime.now() - timedelta(days=days)).isoformat()
@@ -495,7 +489,7 @@ class ReportsService:
             
             # Enhance with additional fields
             for report in recent_reports:
-                report["in_watchlist"] = self.storage.is_symbol_in_watchlist(user_id, report["ticker"])
+                report["in_watchlist"] = self.watchlist_repo.is_symbol_in_watchlist(user_id, report["ticker"])
                 report["sections_count"] = len(report.get("sections", {}))
                 # Add execution timing information
                 report["execution_started_at"] = report.get("analysis_started_at")

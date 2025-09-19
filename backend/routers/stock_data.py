@@ -10,7 +10,7 @@ from datetime import datetime
 from pydantic import BaseModel
 
 from backend.services.data_services import DataServices
-from backend.storage import LocalStorage
+from backend.repositories import CacheRepository, WatchlistRepository
 
 # 配置日志
 logger = logging.getLogger(__name__)
@@ -18,7 +18,8 @@ logger = logging.getLogger(__name__)
 # 初始化路由器和数据服务
 router = APIRouter(prefix="/api/stock", tags=["stock-data"])
 data_service = DataServices(require_api_key=False)  # 仅使用缓存数据
-storage = LocalStorage()  # 本地存储服务
+cache_repo = CacheRepository()  # 缓存存储服务
+watchlist_repo = WatchlistRepository()  # 观察列表服务
 
 # Pydantic 模型
 class StockDataRequest(BaseModel):
@@ -48,7 +49,7 @@ async def get_available_stocks(user_id: str = Query("demo_user", description="�
     """获取用户关注的股票列表，如果用户没有关注的股票则返回缓存中所有可用的股票"""
     try:
         # 获取用户关注的股票
-        watchlist = storage.get_user_watchlist(user_id)
+        watchlist = watchlist_repo.get_user_watchlist(user_id)
         
         if watchlist:
             # 如果用户有关注的股票，验证这些股票在缓存中是否可用
@@ -294,7 +295,7 @@ async def get_market_overview_simple(
 async def get_watchlist(user_id: str = Query("demo_user", description="用户ID")):
     """获取用户关注的股票列表"""
     try:
-        watchlist = storage.get_user_watchlist(user_id)
+        watchlist = watchlist_repo.get_user_watchlist(user_id)
         all_available_stocks = data_service.get_available_stocks()
         
         # 分离可用和不可用的股票
@@ -331,7 +332,7 @@ async def add_to_watchlist(
                 detail=f"股票 {symbol} 不在可用股票列表中"
             )
         
-        success = storage.add_to_watchlist(user_id, symbol)
+        success = watchlist_repo.add_to_watchlist(user_id, symbol)
         if success:
             return {
                 "message": f"股票 {symbol} 已添加到关注列表",
@@ -358,7 +359,7 @@ async def remove_from_watchlist(
     """从用户关注列表中移除股票"""
     try:
         symbol = symbol.upper()
-        success = storage.remove_from_watchlist(user_id, symbol)
+        success = watchlist_repo.remove_from_watchlist(user_id, symbol)
         
         if success:
             return {
@@ -397,7 +398,7 @@ async def update_watchlist(
                 detail=f"以下股票不在可用股票列表中: {', '.join(invalid_symbols)}"
             )
         
-        success = storage.update_watchlist(user_id, symbols)
+        success = watchlist_repo.update_watchlist(user_id, symbols)
         
         if success:
             return {
@@ -423,7 +424,7 @@ async def check_watchlist_status(
     """检查股票是否在用户关注列表中"""
     try:
         symbol = symbol.upper()
-        is_watched = storage.is_symbol_in_watchlist(user_id, symbol)
+        is_watched = watchlist_repo.is_symbol_in_watchlist(user_id, symbol)
         
         return {
             "user_id": user_id,

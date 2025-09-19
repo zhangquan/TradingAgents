@@ -24,6 +24,11 @@ import {
 } from '@/lib/api'
 import { toast } from 'sonner'
 import { AnalysisTaskDialog } from './AnalysisTaskDialog'
+import { 
+  formatTimeWithTimezone, 
+  getTimezoneOffset,
+  getSystemTimeZone 
+} from '@/lib/utils'
 
 interface TaskManagementDialogProps {
   open: boolean
@@ -145,11 +150,15 @@ export function TaskManagementDialog({
   }
 
   const getScheduleDescription = (task: ScheduledTaskInfo) => {
+    // 使用系统时区而不是任务时区
+    const systemTimezone = getSystemTimeZone()
+    const timezoneOffset = getTimezoneOffset(systemTimezone)
+    
     switch (task.schedule_type) {
-      case 'daily': return `每日 ${task.schedule_time} 执行`
-      case 'weekly': return `每周一 ${task.schedule_time} 执行`
-      case 'monthly': return `每月1日 ${task.schedule_time} 执行`
-      case 'once': return `${task.schedule_date} ${task.schedule_time} 执行一次`
+      case 'daily': return `每日 ${task.schedule_time} (${timezoneOffset}) 执行`
+      case 'weekly': return `每周一 ${task.schedule_time} (${timezoneOffset}) 执行`
+      case 'monthly': return `每月1日 ${task.schedule_time} (${timezoneOffset}) 执行`
+      case 'once': return `${task.schedule_date} ${task.schedule_time} (${timezoneOffset}) 执行一次`
       default: return '定时执行'
     }
   }
@@ -264,13 +273,18 @@ export function TaskManagementDialog({
                                 </div>
                               </div>
                               
+                              {/* 系统时区信息提示 */}
+                              <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                                系统时区: {getSystemTimeZone()} ({getTimezoneOffset(getSystemTimeZone())})
+                              </div>
+                              
                               <div className="flex items-center gap-4 text-xs">
                                 <div>
                                   已执行: {task.execution_count} 次
                                 </div>
                                 {task.last_run && (
                                   <div>
-                                    最后执行: {new Date(task.last_run).toLocaleString()}
+                                    最后执行: {formatTimeWithTimezone(task.last_run, getSystemTimeZone())}
                                   </div>
                                 )}
                               </div>

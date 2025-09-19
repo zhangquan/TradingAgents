@@ -25,7 +25,6 @@ class User(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
     # Relationships
-    analyses = relationship("Analysis", back_populates="user", cascade="all, delete-orphan")
     reports = relationship("Report", cascade="all, delete-orphan")
     notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")
     user_configs = relationship("UserConfig", back_populates="user", cascade="all, delete-orphan")
@@ -36,59 +35,13 @@ class User(Base):
         return f"<User(user_id='{self.user_id}', email='{self.email}')>"
 
 
-class Analysis(Base):
-    """Analysis model for storing trading analysis results."""
-    __tablename__ = "analyses"
-    
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    analysis_id = Column(String(255), unique=True, nullable=False, index=True)
-    user_id = Column(String(100), ForeignKey("users.user_id"), nullable=False, index=True)
-    ticker = Column(String(20), nullable=False, index=True)
-    
-    # Analysis data
-    analysts = Column(JSON)  # List of analysts used
-    research_depth = Column(Integer, default=1)
-    llm_provider = Column(String(50))
-    model_config = Column(JSON)
-    
-    # Final state
-    final_state = Column(JSON)  # Decision, confidence, reasoning
-    
-    # Status
-    status = Column(String(50), default="pending", index=True)
-    
-    # Execution timing
-    started_at = Column(DateTime(timezone=True))
-    completed_at = Column(DateTime(timezone=True))
-    execution_duration_seconds = Column(Float)  # Execution duration in seconds
-    
-    # Timestamps
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
-    analysis_date = Column(String(20))  # YYYY-MM-DD format
-    
-    # Relationships
-    user = relationship("User", back_populates="analyses")
-    reports = relationship("Report", back_populates="analysis", cascade="all, delete-orphan")
-    
-    # Indexes for common queries
-    __table_args__ = (
-        Index('idx_user_ticker', 'user_id', 'ticker'),
-        Index('idx_user_date', 'user_id', 'analysis_date'),
-        Index('idx_ticker_date', 'ticker', 'analysis_date'),
-    )
-    
-    def __repr__(self):
-        return f"<Analysis(analysis_id='{self.analysis_id}', ticker='{self.ticker}', status='{self.status}')>"
-
-
 class Report(Base):
     """Report model for storing complete analysis reports with multiple sections."""
     __tablename__ = "reports"
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     report_id = Column(String(255), unique=True, nullable=False, index=True)
-    analysis_id = Column(String(255), ForeignKey("analyses.analysis_id"), nullable=False, index=True)
+    # analysis_id = Column(String(255), ForeignKey("analyses.analysis_id"), nullable=False, index=True)  # Removed - Analysis model deprecated
     user_id = Column(String(100), ForeignKey("users.user_id"), nullable=False, index=True)
     
     # Stock information for direct querying
@@ -121,14 +74,14 @@ class Report(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
     # Relationships
-    analysis = relationship("Analysis", back_populates="reports")
+    # analysis = relationship("Analysis", back_populates="reports")  # Removed - Analysis model deprecated
     user = relationship("User", overlaps="reports")
     
     # Indexes for common queries
     __table_args__ = (
-        Index('idx_analysis_id', 'analysis_id'),
+        # Index('idx_analysis_id', 'analysis_id'),  # Removed - analysis_id field deprecated
         Index('idx_user_ticker', 'user_id', 'ticker'),
-        Index('idx_analysis_created', 'analysis_id', 'created_at'),
+        # Index('idx_analysis_created', 'analysis_id', 'created_at'),  # Removed - analysis_id field deprecated
         Index('idx_ticker_created', 'ticker', 'created_at'),
         Index('idx_user_status', 'user_id', 'status'),
         Index('idx_session_id', 'session_id'),
@@ -262,7 +215,7 @@ class ScheduledTask(Base):
     schedule_time = Column(String(10))  # HH:MM format (optional for immediate tasks)
     schedule_date = Column(String(20))  # For 'once' type: YYYY-MM-DD (optional for immediate tasks)
     cron_expression = Column(String(100))  # For 'cron' type
-    timezone = Column(String(50), default="UTC")
+    # timezone = Column(String(50), default="UTC")  # Removed - use UTC universally, convert in UI
     
     # Task execution status and lifecycle
     status = Column(String(50), default="created", index=True)  # created, starting, running, completed, failed, error
@@ -271,7 +224,7 @@ class ScheduledTask(Base):
     current_step = Column(String(100))  # Current analysis step
     
     # Results and data
-    analysis_id = Column(String(255), ForeignKey("analyses.analysis_id"), index=True)
+    # analysis_id = Column(String(255), ForeignKey("analyses.analysis_id"), index=True)  # Removed - Analysis model deprecated
     result_data = Column(JSON)  # Task execution results
     error_message = Column(Text)
     trace = Column(JSON)  # Step execution trace
@@ -289,7 +242,7 @@ class ScheduledTask(Base):
     
     # Relationships
     user = relationship("User", back_populates="scheduled_tasks")
-    analysis = relationship("Analysis")
+    # analysis = relationship("Analysis")  # Removed - Analysis model deprecated
     
     # Indexes for common queries
     __table_args__ = (
@@ -350,7 +303,7 @@ class ConversationState(Base):
     ticker = Column(String(20), nullable=False, index=True)
     analysis_date = Column(String(20))  # YYYY-MM-DD format
     task_id = Column(String(255), index=True)  # Link to scheduled task
-    analysis_id = Column(String(255), ForeignKey("analyses.analysis_id"), index=True)
+    # analysis_id = Column(String(255), ForeignKey("analyses.analysis_id"), index=True)  # Removed - Analysis model deprecated
     
     # Analysis configuration
     analysts = Column(JSON)  # List of analysts used
@@ -375,6 +328,7 @@ class ConversationState(Base):
     processed_signal = Column(JSON)  # Any processed signal data
     
     # Session metadata
+    execution_type = Column(String(20), default="manual", index=True)  # manual, scheduled
     last_interaction = Column(DateTime(timezone=True))
     is_finalized = Column(Boolean, default=False, index=True)
     
@@ -384,7 +338,7 @@ class ConversationState(Base):
     
     # Relationships
     user = relationship("User")
-    analysis = relationship("Analysis")
+    # analysis = relationship("Analysis")  # Removed - Analysis model deprecated
     
     # Indexes for common queries
     __table_args__ = (

@@ -4,7 +4,10 @@ from datetime import datetime
 from typing import Dict, Any, List, Optional
 
 from tradingagents.default_config import DEFAULT_CONFIG
-from backend.database.storage_service import DatabaseStorage
+from backend.repositories import (
+    UserConfigRepository, ScheduledTaskRepository,
+    SystemRepository, SessionLocal
+)
 
 logger = logging.getLogger(__name__)
 
@@ -13,11 +16,13 @@ class AnalysisService:
     """Service class for handling trading analysis operations"""
     
     def __init__(self):
-        self.storage = DatabaseStorage()
+        self.user_config_repo = UserConfigRepository(SessionLocal)
+        self.scheduled_task_repo = ScheduledTaskRepository(SessionLocal)
+        self.system_repo = SystemRepository(SessionLocal)
     
     def get_user_config_with_defaults(self, user_id: str) -> Dict[str, Any]:
         """Get user configuration with fallback to system defaults."""
-        user_config = self.storage.get_user_config(user_id)
+        user_config = self.user_config_repo.get_user_config(user_id)
         
         # Use user preferences or fallback to defaults from DEFAULT_CONFIG
         return {
@@ -44,15 +49,8 @@ class AnalysisService:
             }
         }
     
-    def get_analysis_history(self, user_id: str = "demo_user", ticker: str = None, limit: int = 50) -> Dict[str, Any]:
-        """Get analysis history for a user."""
-        analyses = self.storage.list_analysis(user_id, ticker, limit)
-        return {"analyses": analyses}
-    
-    def get_analysis_by_id(self, analysis_id: str, user_id: str = "demo_user") -> Optional[Dict[str, Any]]:
-        """Get specific analysis by ID."""
-        return self.storage.get_analysis(user_id, analysis_id)
-    
+ 
+
     def create_scheduled_task(self, 
                               ticker: str,
                               analysts: List[str],
@@ -114,15 +112,15 @@ class AnalysisService:
         
         # Create task using unified API
         try:
-            task_id = self.storage.create_scheduled_task(task_data)
+            task_id = self.scheduled_task_repo.create_scheduled_task(task_data)
             
             # Get the created task data
-            created_task = self.storage.get_scheduled_task(task_id)
+            created_task = self.scheduled_task_repo.get_scheduled_task(task_id)
             if not created_task:
                 raise Exception(f"Failed to retrieve created task {task_id}")
             
             # Log task creation
-            self.storage.log_system_event("scheduled_task_created", {
+            self.system_repo.log_system_event("scheduled_task_created", {
                 "task_id": task_id,
                 "ticker": ticker,
                 "analysts": analysts,
@@ -174,7 +172,7 @@ class AnalysisService:
     def update_scheduled_task_status(self, task_id: str, status: str, **kwargs) -> None:
         """Update scheduled task status and additional data."""
         try:
-            self.storage.update_scheduled_task_status(task_id, status, **kwargs)
+            self.scheduled_task_repo.update_scheduled_task_status(task_id, status, **kwargs)
             logger.info(f"Updated scheduled task {task_id} status to {status}")
         except Exception as e:
             logger.error(f"Error updating scheduled task status: {e}")
@@ -183,7 +181,7 @@ class AnalysisService:
     def get_scheduled_task(self, task_id: str) -> Optional[Dict[str, Any]]:
         """Get scheduled task by ID."""
         try:
-            return self.storage.get_scheduled_task(task_id)
+            return self.scheduled_task_repo.get_scheduled_task(task_id)
         except Exception as e:
             logger.error(f"Error getting scheduled task: {e}")
             return None
@@ -191,7 +189,7 @@ class AnalysisService:
     def list_scheduled_tasks(self, user_id: str = "demo_user", status: str = None, schedule_type: str = None, limit: int = 50) -> List[Dict[str, Any]]:
         """List scheduled tasks with optional filters."""
         try:
-            return self.storage.list_scheduled_tasks(user_id, status, schedule_type, limit)
+            return self.scheduled_task_repo.list_scheduled_tasks(user_id, status, schedule_type, limit)
         except Exception as e:
             logger.error(f"Error listing scheduled tasks: {e}")
             return []
@@ -199,9 +197,9 @@ class AnalysisService:
     def delete_scheduled_task(self, task_id: str) -> bool:
         """Delete scheduled task."""
         try:
-            success = self.storage.delete_scheduled_task(task_id)
+            success = self.scheduled_task_repo.delete_scheduled_task(task_id)
             if success:
-                self.storage.log_system_event("scheduled_task_deleted", {
+                self.system_repo.log_system_event("scheduled_task_deleted", {
                     "task_id": task_id
                 })
                 logger.info(f"Deleted scheduled task {task_id}")
