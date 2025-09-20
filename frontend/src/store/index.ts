@@ -6,6 +6,7 @@ export { useWatchlistStore } from './watchlistStore'
 export { useNotificationsStore } from './notificationsStore'
 export { useConversationStore } from './conversationStore'
 export { useSystemStore } from './systemStore'
+export { useSchedulerStore } from './schedulerStore'
 
 // Store hooks are exported above
 // Individual state interfaces are available in their respective files

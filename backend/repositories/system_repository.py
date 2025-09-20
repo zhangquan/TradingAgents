@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 class SystemRepository(BaseRepository[SystemLog]):
     """系统日志数据访问Repository"""
     
-    def __init__(self, session_factory=None):
+    def __init__(self):
         super().__init__(SystemLog)
     
     def log_system_event(self, event_type: str, event_data: Dict[str, Any]) -> bool:

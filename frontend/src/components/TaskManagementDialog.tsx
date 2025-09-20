@@ -18,7 +18,7 @@ import {
   Calendar,
   Clock
 } from 'lucide-react'
-import { ScheduledTaskInfo, UnifiedTaskInfo } from '@/api/types'
+import { AnalysisTaskInfo, UnifiedTaskInfo } from '@/api/types'
 import { useAnalysisStore } from '@/store/analysisStore'
 import { toast } from 'sonner'
 import { AnalysisTaskDialog } from './AnalysisTaskCreateDialog'
@@ -64,7 +64,7 @@ export function TaskManagementDialog({
 
   useEffect(() => {
     if (open) {
-      loadScheduledTasks()
+      loadAnalysisTasks()
     }
   }, [open, ticker])
 
@@ -75,7 +75,7 @@ export function TaskManagementDialog({
     }
   }, [open, clearError])
 
-  const loadScheduledTasks = async () => {
+  const loadAnalysisTasks = async () => {
     try {
       if (ticker) {
         // 使用新的按股票筛选API
@@ -103,7 +103,7 @@ export function TaskManagementDialog({
     try {
       await toggleTask(taskId)
       toast.success('定时任务状态已更新')
-      loadScheduledTasks()
+      loadAnalysisTasks()
       onTaskUpdated?.()
     } catch (error) {
       console.error('Failed to toggle task:', error)
@@ -117,7 +117,7 @@ export function TaskManagementDialog({
     try {
       await deleteTask(taskId)
       toast.success('定时任务已删除')
-      loadScheduledTasks()
+      loadAnalysisTasks()
       onTaskUpdated?.()
     } catch (error) {
       console.error('Failed to delete task:', error)
@@ -129,7 +129,7 @@ export function TaskManagementDialog({
     try {
       await runTaskNow(taskId)
       toast.success('定时任务已立即执行')
-      loadScheduledTasks()
+      loadAnalysisTasks()
       onTaskUpdated?.()
     } catch (error) {
       console.error('Failed to run task now:', error)
@@ -150,18 +150,18 @@ export function TaskManagementDialog({
   }
 
   const handleTaskCreated = () => {
-    loadScheduledTasks()
+    loadAnalysisTasks()
     onTaskUpdated?.()
   }
 
   const handleTaskUpdatedInDialog = () => {
-    loadScheduledTasks()
+    loadAnalysisTasks()
     onTaskUpdated?.()
     setEditingTaskId(null)
   }
 
   const getFilteredTasks = () => {
-    // 如果指定了ticker，数据已经在loadScheduledTasks中过滤了
+    // 如果指定了ticker，数据已经在loadAnalysisTasks中过滤了
     // 所以这里只需要按状态筛选
     return stockTasks.filter((task) => {
       if (filterStatus === 'all') return true
@@ -216,7 +216,7 @@ export function TaskManagementDialog({
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  onClick={loadScheduledTasks}
+                  onClick={loadAnalysisTasks}
                   disabled={isLoading}
                 >
                   <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />

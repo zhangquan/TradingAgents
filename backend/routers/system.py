@@ -6,7 +6,7 @@ import os
 from datetime import datetime
 
 from backend.repositories import (
-    SystemRepository, UserConfigRepository, SessionLocal
+    SystemRepository, UserConfigRepository
 )
 
 # Configure logging
@@ -14,8 +14,8 @@ logger = logging.getLogger(__name__)
 
 # Initialize router and repositories
 router = APIRouter(prefix="/system", tags=["system"])
-system_repo = SystemRepository(SessionLocal)
-user_config_repo = UserConfigRepository(SessionLocal)
+system_repo = SystemRepository()
+user_config_repo = UserConfigRepository()
 
 # Pydantic models for user preferences (not API keys)
 class UserPreferencesRequest(BaseModel):
@@ -170,8 +170,8 @@ async def get_system_stats():
         stats = system_repo.get_storage_stats()
         
         # Add runtime stats by querying database
-        active_tasks = system_repo.list_scheduled_tasks(status="running", limit=1000)
-        completed_tasks = system_repo.list_scheduled_tasks(status="completed", limit=1000)
+        active_tasks = system_repo.list_analysis_tasks(status="running", limit=1000)
+        completed_tasks = system_repo.list_analysis_tasks(status="completed", limit=1000)
         
         stats["runtime"] = {
             "active_tasks": len(active_tasks),
@@ -205,7 +205,7 @@ async def cleanup_system():
         cutoff_time = datetime.now() - timedelta(hours=24)
         
         # Get old completed tasks
-        old_tasks = system_repo.list_scheduled_tasks(status="completed", limit=1000)
+        old_tasks = system_repo.list_analysis_tasks(status="completed", limit=1000)
         expired_tasks_count = 0
         
         for task in old_tasks:
@@ -213,7 +213,7 @@ async def cleanup_system():
                 from datetime import datetime
                 completed_at = datetime.fromisoformat(task["completed_at"].replace('Z', '+00:00'))
                 if completed_at < cutoff_time:
-                    system_repo.delete_scheduled_task(task["task_id"])
+                    system_repo.delete_analysis_task(task["task_id"])
                     expired_tasks_count += 1
         
         return {

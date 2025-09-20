@@ -15,15 +15,11 @@ from .config_repository import SystemConfigRepository, ConfigRepository
 from .cache_repository import CacheRepository
 from .system_repository import SystemRepository
 from .watchlist_repository import WatchlistRepository
-from .scheduled_task_repository import ScheduledTaskRepository
-
-# Database session factory for repositories
-from ..database.database import SessionLocal
+from .analysis_task_repository import AnalysisTaskRepository
 
 __all__ = [
     # Base
     "BaseRepository",
-    "SessionLocal",
     
     # Domain repositories
     "UserRepository", 
@@ -38,5 +34,5 @@ __all__ = [
     "CacheRepository",
     "SystemRepository",
     "WatchlistRepository",
-    "ScheduledTaskRepository",
+    "AnalysisTaskRepository",
 ]

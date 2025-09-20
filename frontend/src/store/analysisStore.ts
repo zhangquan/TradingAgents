@@ -1,9 +1,9 @@
 import { create } from 'zustand'
 import { analysisApi } from '../api/analysis'
 import { 
-  ScheduledAnalysisRequest, 
-  ScheduledTaskResponse, 
-  ScheduledTaskInfo, 
+  AnalysisTaskRequest, 
+  AnalysisTaskResponse, 
+  AnalysisTaskInfo, 
   UnifiedTaskInfo, 
   TaskInfo,
   AnalysisConfig,
@@ -22,9 +22,9 @@ interface AnalysisState {
   loadConfig: () => Promise<void>
   loadTasks: () => Promise<void>
   loadTasksByStock: (stockSymbol: string, limit?: number) => Promise<TasksByStockResponse>
-  createTask: (request: ScheduledAnalysisRequest) => Promise<ScheduledTaskResponse>
+  createTask: (request: AnalysisTaskRequest) => Promise<AnalysisTaskResponse>
   getTask: (taskId: string) => Promise<void>
-  updateTask: (taskId: string, request: ScheduledAnalysisRequest) => Promise<void>
+  updateTask: (taskId: string, request: AnalysisTaskRequest) => Promise<void>
   deleteTask: (taskId: string) => Promise<void>
   toggleTask: (taskId: string) => Promise<void>
   runTaskNow: (taskId: string) => Promise<void>
@@ -78,7 +78,7 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
     }
   },
 
-  createTask: async (request: ScheduledAnalysisRequest) => {
+  createTask: async (request: AnalysisTaskRequest) => {
     set({ isLoading: true, error: null })
     try {
       const response = await analysisApi.createTask(request)
@@ -102,7 +102,7 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
     }
   },
 
-  updateTask: async (taskId: string, request: ScheduledAnalysisRequest) => {
+  updateTask: async (taskId: string, request: AnalysisTaskRequest) => {
     set({ isLoading: true, error: null })
     try {
       await analysisApi.updateTask(taskId, request)

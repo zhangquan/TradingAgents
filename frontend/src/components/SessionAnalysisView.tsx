@@ -117,39 +117,9 @@ export function SessionAnalysisView({
         <div className="flex items-center justify-between mb-4">
           {/* 左侧：历史记录按钮 */}
           <div className="flex items-center gap-2">
-            <HistoryConversationsDialog 
-              initialTicker={ticker}
-              currentStock={ticker}
-              onConversationSelect={onHistoryConversationSelect}
-              trigger={
-                <Button
-                  variant="outline"
-                  size="sm"
-                >
-                  <MessageCircle className="h-4 w-4 mr-2" />
-                  历史对话
-                </Button>
-              }
-            />
-          </div>
-          
-          {/* 右侧：其他操作按钮 */}
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleOpenTaskManagement}
-            >
-              <Settings className="h-4 w-4 mr-2" />
-              任务管理
-            </Button>
-          </div>
-        </div>
-      </div>
-      
-      {/* 对话信息展示区域 */}
+               {/* 对话信息展示区域 */}
       {selectedConversation && (
-        <div className={`mb-4 mx-6 p-3 border rounded-lg ${
+        <div className={`p-1 border rounded-lg ${
           isHistoryConversation 
             ? 'bg-blue-50 border-blue-200' 
             : 'bg-green-50 border-green-200'
@@ -176,7 +146,7 @@ export function SessionAnalysisView({
                   onClick={showSessionBadgeNavigation ? handleSessionBadgeClick : undefined}
                   title={showSessionBadgeNavigation ? "点击查看Session详情" : undefined}
                 >
-                  Session: {selectedConversation.session_id.slice(0, 8)}...
+                
                   {showSessionBadgeNavigation && <ExternalLink className="h-3 w-3" />}
                 </Badge>
                 
@@ -198,36 +168,43 @@ export function SessionAnalysisView({
             
             {/* 右侧操作按钮 */}
             <div className="flex items-center gap-2">
-              {showBackToLatestButton && isHistoryConversation && onBackToLatest && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onBackToLatest}
-                  className="text-blue-600 border-blue-300 hover:bg-blue-100"
-                >
-                  <ArrowLeft className="h-4 w-4 mr-1" />
-                  返回最新对话
-                </Button>
-              )}
               
-              {onRefreshData && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onRefreshData}
-                  className={isHistoryConversation 
-                    ? "text-blue-600 border-blue-300 hover:bg-blue-100"
-                    : "text-green-600 border-green-300 hover:bg-green-100"
-                  }
-                >
-                  <RefreshCw className="h-4 w-4 mr-1" />
-                  刷新数据
-                </Button>
-              )}
+           
             </div>
           </div>
         </div>
       )}
+          </div>
+          
+          {/* 右侧：其他操作按钮 */}
+          <div className="flex items-center gap-2">
+          <HistoryConversationsDialog 
+              initialTicker={ticker}
+              currentStock={ticker}
+              onConversationSelect={onHistoryConversationSelect}
+              trigger={
+                <Button
+                  variant="outline"
+                  size="sm"
+                >
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  历史对话
+                </Button>
+              }
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleOpenTaskManagement}
+            >
+              <Settings className="h-4 w-4 mr-2" />
+              任务管理
+            </Button>
+          </div>
+        </div>
+      </div>
+      
+     
       
       {/* Agent 对话内容 - 使用独立组件 */}
       <div className="px-6">

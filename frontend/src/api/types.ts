@@ -14,7 +14,7 @@ export interface TaskResponse {
   message: string
 }
 
-export interface ScheduledAnalysisRequest {
+export interface AnalysisTaskRequest {
   ticker: string
   analysts: string[]
   research_depth: number
@@ -26,14 +26,14 @@ export interface ScheduledAnalysisRequest {
   enabled: boolean
 }
 
-export interface ScheduledTaskResponse {
+export interface AnalysisTaskResponse {
   task_id: string
   status: string
   message: string
   task_type: string
 }
 
-export interface ScheduledTaskInfo {
+export interface AnalysisTaskInfo {
   task_id: string
   ticker: string
   analysts: string[]
@@ -52,7 +52,7 @@ export interface ScheduledTaskInfo {
 
 export interface UnifiedTaskInfo {
   task_id: string
-  task_type: 'manual' | 'scheduled'
+  task_type: 'manual' | 'analysis'
   status: string
   ticker?: string
   analysts?: string[]
@@ -66,7 +66,7 @@ export interface UnifiedTaskInfo {
   error?: string
   results?: any
   
-  // Scheduled task specific fields
+  // Analysis task specific fields
   schedule_type?: string
   schedule_time?: string
   schedule_date?: string
@@ -129,7 +129,7 @@ export interface AnalysisReportItem {
   execution_completed_at?: string
   execution_duration_seconds?: number
   execution_duration_formatted?: string
-  execution_type?: string  // manual, scheduled
+  execution_type?: string  // manual, analysis
 }
 
 // User Types

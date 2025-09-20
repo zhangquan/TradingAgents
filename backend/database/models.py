@@ -28,7 +28,7 @@ class User(Base):
     reports = relationship("Report", cascade="all, delete-orphan")
     notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")
     user_configs = relationship("UserConfig", back_populates="user", cascade="all, delete-orphan")
-    scheduled_tasks = relationship("ScheduledTask", back_populates="user", cascade="all, delete-orphan")
+    analysis_tasks = relationship("AnalysisTask", back_populates="user", cascade="all, delete-orphan")
     watchlist_items = relationship("Watchlist", back_populates="user", cascade="all, delete-orphan")
     
     def __repr__(self):
@@ -63,8 +63,7 @@ class Report(Base):
     
     # Analysis execution metrics
     analysis_started_at = Column(DateTime(timezone=True))
-    analysis_completed_at = Column(DateTime(timezone=True))  
-    analysis_duration_seconds = Column(Float)  # Total analysis execution time in seconds
+    analysis_completed_at = Column(DateTime(timezone=True))
     
     # Status
     status = Column(String(50), default="generated", index=True)  # generated, reviewed, archived
@@ -196,9 +195,9 @@ class SystemLog(Base):
         return f"<SystemLog(event_type='{self.event_type}', timestamp='{self.timestamp}')>"
 
 
-class ScheduledTask(Base):
+class AnalysisTask(Base):
     """Task model for all analysis tasks - supports both scheduled execution and immediate execution."""
-    __tablename__ = "scheduled_tasks"
+    __tablename__ = "analysis_tasks"
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     task_id = Column(String(255), unique=True, nullable=False, index=True)
@@ -211,14 +210,14 @@ class ScheduledTask(Base):
     research_depth = Column(Integer, default=1)
     
   
-    schedule_type = Column(String(50), default="daily")  #   daily, weekly, monthly, cron
+    schedule_type = Column(String(50), default="daily")  # once,  daily, weekly, monthly, cron
     schedule_time = Column(String(10))  # HH:MM format (optional for immediate tasks)
     schedule_date = Column(String(20))  # For 'once' type: YYYY-MM-DD (optional for immediate tasks)
     cron_expression = Column(String(100))  # For 'cron' type
     # timezone = Column(String(50), default="UTC")  # Removed - use UTC universally, convert in UI
     
     # Task execution status and lifecycle
-    status = Column(String(50), default="created", index=True)  # created, starting, running, completed, failed, error
+    status = Column(String(50), default="created", index=True)  # created, running, completed, failed
     enabled = Column(Boolean, default=True, index=True)
     progress = Column(Integer, default=0)  # 0-100
     current_step = Column(String(100))  # Current analysis step
@@ -241,7 +240,7 @@ class ScheduledTask(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
     # Relationships
-    user = relationship("User", back_populates="scheduled_tasks")
+    user = relationship("User", back_populates="analysis_tasks")
     # analysis = relationship("Analysis")  # Removed - Analysis model deprecated
     
     # Indexes for common queries
@@ -254,7 +253,7 @@ class ScheduledTask(Base):
     )
     
     def __repr__(self):
-        return f"<ScheduledTask(task_id='{self.task_id}', ticker='{self.ticker}', status='{self.status}', type='{self.schedule_type}')>"
+        return f"<AnalysisTask(task_id='{self.task_id}', ticker='{self.ticker}', status='{self.status}', type='{self.schedule_type}')>"
 
 
 class Watchlist(Base):

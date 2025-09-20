@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 class CacheRepository(BaseRepository[CacheEntry]):
     """缓存数据访问Repository"""
     
-    def __init__(self, session_factory=None):
+    def __init__(self):
         super().__init__(CacheEntry)
     
     def save_cache(self, cache_key: str, data: Any, ttl_hours: int = 24) -> bool:

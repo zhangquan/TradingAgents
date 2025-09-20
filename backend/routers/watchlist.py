@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 from typing import Dict, Any, List, Optional
 import logging
 
-from backend.repositories import WatchlistRepository, SessionLocal
+from backend.repositories import WatchlistRepository
 from backend.services.analysis_services import analysis_service
 from backend.services.scheduler_service import scheduler_service
 
@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 # Initialize router and storage
 router = APIRouter(prefix="/watchlist", tags=["watchlist"])
-watchlist_repo = WatchlistRepository(SessionLocal)
+watchlist_repo = WatchlistRepository()
 
 # Pydantic models
 class WatchlistItemRequest(BaseModel):
@@ -88,7 +88,7 @@ async def add_to_watchlist(item: WatchlistItemRequest, user_id: str = "demo_user
             user_config = analysis_service.get_user_config_with_defaults(user_id)
             
             # Create analysis task (stored but not executed)
-            task_data = analysis_service.create_scheduled_task(
+            task_data = analysis_service.create_analysis_task(
                 ticker=item.ticker,
                 analysts=user_config.get("default_analysts", ["market", "news", "fundamentals"]),
                 research_depth=user_config.get("default_research_depth", 1),
@@ -100,17 +100,17 @@ async def add_to_watchlist(item: WatchlistItemRequest, user_id: str = "demo_user
             )
             
             # Add the task to scheduler service
-            scheduler_success = scheduler_service.add_task_to_scheduler(task_data)
+            scheduler_success = scheduler_service.add_task_to_scheduler(task_data["task_id"])
             if scheduler_success:
                 # Update task status to scheduled
-                analysis_service.update_scheduled_task_status(task_data["task_id"], "scheduled")
+                analysis_service.update_analysis_task_status(task_data["task_id"], "scheduled")
                 analysis_task_info = {
                     "task_id": task_data["task_id"],
                     "status": "scheduled"
                 }
             else:
                 # If scheduler failed, update status to error
-                analysis_service.update_scheduled_task_status(task_data["task_id"], "error", 
+                analysis_service.update_analysis_task_status(task_data["task_id"], "error", 
                                                             error="Failed to add to scheduler")
                 analysis_task_info = {
                     "task_id": task_data["task_id"],
@@ -164,7 +164,7 @@ async def remove_from_watchlist(ticker: str, user_id: str = "demo_user"):
         
         try:
             # Get all scheduled tasks for this user and ticker
-            all_tasks = analysis_service.list_scheduled_tasks(user_id=user_id, limit=1000)
+            all_tasks = analysis_service.list_analysis_tasks(user_id=user_id, limit=1000)
             related_tasks = [task for task in all_tasks if task.get("ticker", "").upper() == ticker.upper()]
             
             for task in related_tasks:
@@ -172,9 +172,9 @@ async def remove_from_watchlist(ticker: str, user_id: str = "demo_user"):
                 if task_id:
                     try:
                         # Delete from scheduler first
-                        scheduler_deleted = scheduler_service.delete_scheduled_task(task_id)
+                        scheduler_deleted = scheduler_service.delete_analysis_task(task_id)
                         # Delete from storage
-                        storage_deleted = analysis_service.delete_scheduled_task(task_id)
+                        storage_deleted = analysis_service.delete_analysis_task(task_id)
                         
                         if scheduler_deleted and storage_deleted:
                             deleted_tasks.append({
@@ -272,7 +272,7 @@ async def add_bulk_to_watchlist(request: BulkWatchlistRequest, user_id: str = "d
                 if success:
                     try:
                         # Create analysis task
-                        task_data = analysis_service.create_scheduled_task(
+                        task_data = analysis_service.create_analysis_task(
                             ticker=ticker,
                             analysts=user_config.get("default_analysts", ["market", "news", "fundamentals"]),
                             research_depth=user_config.get("default_research_depth", 1),
@@ -284,17 +284,17 @@ async def add_bulk_to_watchlist(request: BulkWatchlistRequest, user_id: str = "d
                         )
                         
                         # Add the task to scheduler service
-                        scheduler_success = scheduler_service.add_task_to_scheduler(task_data)
+                        scheduler_success = scheduler_service.add_task_to_scheduler(task_data["task_id"])
                         if scheduler_success:
                             # Update task status to scheduled
-                            analysis_service.update_scheduled_task_status(task_data["task_id"], "scheduled")
+                            analysis_service.update_analysis_task_status(task_data["task_id"], "scheduled")
                             result["analysis_task"] = {
                                 "task_id": task_data["task_id"],
                                 "status": "scheduled"
                             }
                         else:
                             # If scheduler failed, update status to error
-                            analysis_service.update_scheduled_task_status(task_data["task_id"], "error", 
+                            analysis_service.update_analysis_task_status(task_data["task_id"], "error", 
                                                                         error="Failed to add to scheduler")
                             result["analysis_task"] = {
                                 "task_id": task_data["task_id"],

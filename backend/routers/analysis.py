@@ -16,9 +16,9 @@ router = APIRouter(prefix="/analysis", tags=["analysis"])
 
 
 # Pydantic models
-# AnalysisRequest removed - only scheduled tasks supported now
+# AnalysisRequest removed - only analysis tasks supported now
 
-class ScheduledAnalysisRequest(BaseModel):
+class AnalysisTaskRequest(BaseModel):
     ticker: str
     analysts: List[str]
     research_depth: int = 1
@@ -32,8 +32,6 @@ class TaskResponse(BaseModel):
     task_id: str
     status: str
     message: str
-    task_type: str = "scheduled"
-    schedule_id: Optional[str] = None
 
 class AnalysisResponse(BaseModel):
     analysis_id: str
@@ -50,38 +48,22 @@ class AnalysisResponse(BaseModel):
 
 @router.get("/tasks")
 async def list_tasks():
-    """Get list of all scheduled tasks"""
+    """Get list of all analysis tasks"""
     try:
         # Get all tasks from database storage
-        all_tasks = analysis_service.list_scheduled_tasks(limit=100)
+        all_tasks = analysis_service.list_analysis_tasks(limit=100)
         
-        # Filter and format only scheduled tasks
-        scheduled_tasks = {}
+        # Filter and format only scheduled tasks, return task domain format
+        analysis_tasks = {}
         
         for task in all_tasks:
             task_id = task["task_id"]
             
             if task["schedule_type"] in ["once", "daily", "weekly", "monthly", "cron"]:
-                # These are scheduled tasks
-                scheduled_tasks[task_id] = {
-                    "task_id": task_id,
-                    "task_type": "scheduled",
-                    "status": "enabled" if task["enabled"] else "disabled",
-                    "ticker": task["ticker"],
-                    "analysts": task["analysts"],
-                    "research_depth": task["research_depth"],
-                    "schedule_type": task["schedule_type"],
-                    "schedule_time": task["schedule_time"],
-                    "schedule_date": task.get("schedule_date"),
-                    "cron_expression": task.get("cron_expression"),
-                    "enabled": task["enabled"],
-                    "created_at": task["created_at"],
-                    "last_run": task.get("last_run"),
-                    "execution_count": task.get("execution_count", 0),
-                    "last_error": task.get("last_error")
-                }
+                # Return complete task domain format
+                analysis_tasks[task_id] = task
         
-        return scheduled_tasks
+        return analysis_tasks
     except Exception as e:
         logger.error(f"Error listing tasks: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -92,31 +74,15 @@ async def get_tasks_by_stock(stock_symbol: str, limit: int = 50):
     try:
         # Get tasks filtered by ticker from analysis service
         logger.info(f"Getting tasks for ticker: {stock_symbol.upper()}, limit: {limit}")
-        tasks = analysis_service.list_scheduled_tasks_by_ticker(ticker=stock_symbol.upper(), limit=limit)
+        tasks = analysis_service.list_analysis_tasks_by_ticker(ticker=stock_symbol.upper(), limit=limit)
         logger.info(f"Retrieved {len(tasks)} tasks for ticker {stock_symbol.upper()}")
         
-        # Format tasks for response
+        # Filter tasks and return task domain format
         formatted_tasks = []
         for task in tasks:
             if task["schedule_type"] in ["once", "daily", "weekly", "monthly", "cron"]:
-                # Scheduled task format
-                formatted_tasks.append({
-                    "task_id": task["task_id"],
-                    "task_type": "scheduled",
-                    "status": "enabled" if task["enabled"] else "disabled",
-                    "ticker": task["ticker"],
-                    "analysts": task["analysts"],
-                    "research_depth": task["research_depth"],
-                    "schedule_type": task["schedule_type"],
-                    "schedule_time": task["schedule_time"],
-                    "schedule_date": task.get("schedule_date"),
-                    "cron_expression": task.get("cron_expression"),
-                    "enabled": task["enabled"],
-                    "created_at": task["created_at"],
-                    "last_run": task.get("last_run"),
-                    "execution_count": task.get("execution_count", 0),
-                    "last_error": task.get("last_error")
-                })
+                # Return complete task domain format
+                formatted_tasks.append(task)
         
         return {
             "ticker": stock_symbol.upper(),
@@ -130,36 +96,15 @@ async def get_tasks_by_stock(stock_symbol: str, limit: int = 50):
 
 @router.get("/tasks/{task_id}")
 async def get_task_details(task_id: str):
-    """Get details of a specific scheduled task"""
+    """Get details of a specific analysis task"""
     try:
         # Get task from database storage
-        task = analysis_service.get_scheduled_task(task_id)
+        task = analysis_service.get_analysis_task(task_id)
         if not task:
             raise HTTPException(status_code=404, detail="Task not found")
         
-        # Format the task based on its type
-        if task["schedule_type"] in ["once", "daily", "weekly", "monthly", "cron"]:
-            # Scheduled task format
-            return {
-                "task_id": task_id,
-                "task_type": "scheduled",
-                "status": "enabled" if task["enabled"] else "disabled",
-                "ticker": task["ticker"],
-                "analysts": task["analysts"],
-                "research_depth": task["research_depth"],
-                "schedule_type": task["schedule_type"],
-                "schedule_time": task["schedule_time"],
-                "schedule_date": task.get("schedule_date"),
-                "cron_expression": task.get("cron_expression"),
-                "enabled": task["enabled"],
-                "created_at": task["created_at"],
-                "last_run": task.get("last_run"),
-                "execution_count": task.get("execution_count", 0),
-                "last_error": task.get("last_error")
-            }
-        else:
-            # Immediate execution task format
-            return task
+        # Return complete task domain format regardless of type
+        return task
             
     except HTTPException:
         raise
@@ -171,13 +116,13 @@ async def get_task_details(task_id: str):
 
 @router.delete("/tasks/{task_id}")
 async def delete_task(task_id: str):
-    """Delete a scheduled task"""
+    """Delete an analysis task"""
     try:
         # Step 1: Remove from scheduler service
-        scheduler_service.delete_scheduled_task(task_id)
+        scheduler_service.delete_analysis_task(task_id)
         
         # Step 2: Remove task data from analysis service
-        analysis_service.delete_scheduled_task(task_id)
+        analysis_service.delete_analysis_task(task_id)
         
         return {"message": "Scheduled task deleted successfully"}
         
@@ -199,14 +144,14 @@ async def get_analysis_config():
 
 
 
-# Scheduled Tasks API Endpoints
+# Analysis Tasks API Endpoints
 
 @router.post("/tasks", response_model=TaskResponse)
-async def create_scheduled_analysis(request: ScheduledAnalysisRequest, http_request: Request):
-    """Create a scheduled analysis task"""
+async def create_analysis_task(request: AnalysisTaskRequest, http_request: Request):
+    """Create an analysis task"""
     try:
         # Step 1: Create task data in analysis service first
-        task_data = analysis_service.create_scheduled_task(
+        task_data = analysis_service.create_analysis_task(
             ticker=request.ticker,
             analysts=request.analysts,
             research_depth=request.research_depth,
@@ -218,34 +163,32 @@ async def create_scheduled_analysis(request: ScheduledAnalysisRequest, http_requ
             user_id="demo_user"
         )
         
-        schedule_id = task_data["task_id"]
+        task_id = task_data["task_id"]
         
         # Step 2: Add the task to scheduler service
         try:
-            scheduler_success = scheduler_service.add_task_to_scheduler(task_data)
+            scheduler_success = scheduler_service.add_task_to_scheduler(task_id)
             if scheduler_success:
                 # Update task status to scheduled
-                analysis_service.update_scheduled_task_status(schedule_id, "scheduled")
+                analysis_service.update_analysis_task_status(task_id, "running")
             else:
                 # If scheduler failed, update status to error
-                analysis_service.update_scheduled_task_status(schedule_id, "error", 
+                analysis_service.update_analysis_task_status(task_id, "error", 
                                                             error="Failed to add to scheduler")
                 raise Exception("Failed to add task to scheduler")
                 
         except Exception as scheduler_error:
             # If scheduler fails, we still have the task data but it won't be executed
             logger.error(f"Failed to add task to scheduler: {scheduler_error}")
-            analysis_service.update_scheduled_task_status(schedule_id, "error", 
+            analysis_service.update_analysis_task_status(task_id, "error", 
                                                         error=str(scheduler_error))
             raise HTTPException(status_code=500, 
                               detail=f"Task created but scheduling failed: {str(scheduler_error)}")
         
         return TaskResponse(
-            task_id=schedule_id,
-            status="scheduled",
-            message="Scheduled analysis task created and scheduled successfully",
-            task_type="scheduled",
-            schedule_id=schedule_id
+            task_id=task_id,
+            status="enabled",
+            message="Scheduled analysis task created and scheduled successfully"
         )
         
     except ValueError as e:
@@ -263,14 +206,12 @@ async def create_scheduled_analysis(request: ScheduledAnalysisRequest, http_requ
 
 @router.put("/tasks/{task_id}/toggle")
 async def toggle_task(task_id: str):
-    """Enable or disable a scheduled task"""
+    """Enable or disable an analysis task"""
     try:
         # Step 1: Toggle in scheduler service
         result = scheduler_service.toggle_task(task_id)
-        
-        # Step 2: Update status in analysis service  
-        new_status = "scheduled" if result["enabled"] else "disabled"
-        analysis_service.update_scheduled_task_status(task_id, new_status, enabled=result["enabled"])
+ 
+        analysis_service.toggle_task(task_id, {"enabled": result["enabled"]})
         
         return result
         
@@ -283,16 +224,16 @@ async def toggle_task(task_id: str):
 
 
 @router.put("/tasks/{task_id}")
-async def update_task(task_id: str, request: ScheduledAnalysisRequest):
-    """Update a scheduled task"""
+async def update_task(task_id: str, request: AnalysisTaskRequest):
+    """Update an analysis task"""
     try:
         # Get existing task to validate it exists
-        existing_task = analysis_service.get_scheduled_task(task_id)
+        existing_task = analysis_service.get_analysis_task(task_id)
         if not existing_task:
             raise HTTPException(status_code=404, detail="Task not found")
         
         # Validate that it's a scheduled task (not immediate)
-        if existing_task.get("schedule_type") == "immediate":
+        if existing_task.get("schedule_type") == "once":
             raise HTTPException(status_code=400, detail="Cannot edit immediate execution tasks")
         
         # Prepare update data
@@ -308,10 +249,10 @@ async def update_task(task_id: str, request: ScheduledAnalysisRequest):
         }
         
         # Update in scheduler service (this will handle re-registering the job)
-        scheduler_service.update_scheduled_task(task_id, update_data)
+        scheduler_service.update_analysis_task(task_id, update_data)
         
         # Update in analysis service 
-        analysis_service.update_scheduled_task_status(task_id, "scheduled", **update_data)
+        analysis_service.update_analysis_task_status(task_id, "enabled", **update_data)
         
         return {
             "message": "Task updated successfully",
@@ -329,10 +270,10 @@ async def update_task(task_id: str, request: ScheduledAnalysisRequest):
 
 @router.post("/tasks/{task_id}/run-now")
 async def run_task_now(task_id: str):
-    """Execute a scheduled task immediately"""
-    task_info = scheduler_service.get_scheduled_task(task_id)
+    """Execute an analysis task immediately"""
+    task_info = scheduler_service.get_analysis_task(task_id)
     if not task_info:
-        raise HTTPException(status_code=404, detail="Scheduled task not found")
+        raise HTTPException(status_code=404, detail="Analysis task not found")
     
     try:
         # Execute immediately using scheduler service
@@ -343,11 +284,11 @@ async def run_task_now(task_id: str):
         }
         
         # Execute the analysis using unified task executor
-        execution_id = await scheduler_service.execute_analysis_task(
+        await analysis_service.execute_analysis_task(
             ticker=analysis_config["ticker"],
             analysts=analysis_config["analysts"],
             research_depth=analysis_config["research_depth"],
-            schedule_id=task_id
+            task_id=task_id
         )
         
         return {
@@ -359,16 +300,6 @@ async def run_task_now(task_id: str):
         
     except Exception as e:
         logger.error(f"Error running scheduled task now: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.get("/scheduler/status")
-async def get_scheduler_status():
-    """Get scheduler service status and statistics"""
-    try:
-        return scheduler_service.get_scheduler_status()
-    except Exception as e:
-        logger.error(f"Error getting scheduler status: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

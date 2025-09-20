@@ -5,8 +5,8 @@ from typing import Dict, Any, List, Optional
 
 from tradingagents.default_config import DEFAULT_CONFIG
 from backend.repositories import (
-    UserConfigRepository, ScheduledTaskRepository,
-    SystemRepository, SessionLocal
+    UserConfigRepository, AnalysisTaskRepository,
+    SystemRepository
 )
 
 logger = logging.getLogger(__name__)
@@ -16,9 +16,9 @@ class AnalysisService:
     """Service class for handling trading analysis operations"""
     
     def __init__(self):
-        self.user_config_repo = UserConfigRepository(SessionLocal)
-        self.scheduled_task_repo = ScheduledTaskRepository(SessionLocal)
-        self.system_repo = SystemRepository(SessionLocal)
+        self.user_config_repo = UserConfigRepository()
+        self.analysis_task_repo = AnalysisTaskRepository()
+        self.system_repo = SystemRepository()
     
     def get_user_config_with_defaults(self, user_id: str) -> Dict[str, Any]:
         """Get user configuration with fallback to system defaults."""
@@ -51,7 +51,7 @@ class AnalysisService:
     
  
 
-    def create_scheduled_task(self, 
+    def create_analysis_task(self, 
                               ticker: str,
                               analysts: List[str],
                               research_depth: int,
@@ -107,15 +107,15 @@ class AnalysisService:
         
         # Create task using unified API
         try:
-            task_id = self.scheduled_task_repo.create_scheduled_task(task_data)
+            task_id = self.analysis_task_repo.create_analysis_task(task_data)
             
             # Get the created task data
-            created_task = self.scheduled_task_repo.get_scheduled_task(task_id)
+            created_task = self.analysis_task_repo.get_analysis_task(task_id)
             if not created_task:
                 raise Exception(f"Failed to retrieve created task {task_id}")
             
             # Log task creation
-            self.system_repo.log_system_event("scheduled_task_created", {
+            self.system_repo.log_system_event("analysis_task_created", {
                 "task_id": task_id,
                 "ticker": ticker,
                 "analysts": analysts,
@@ -164,48 +164,63 @@ class AnalysisService:
         if schedule_type == "cron" and not cron_expression:
             raise ValueError("cron_expression is required for 'cron' schedule type")
     
-    def update_scheduled_task_status(self, task_id: str, status: str, **kwargs) -> None:
+    def update_analysis_task_status(self, task_id: str, status: str, **kwargs) -> None:
         """Update scheduled task status and additional data."""
         try:
-            self.scheduled_task_repo.update_scheduled_task_status(task_id, status, **kwargs)
+            self.analysis_task_repo.update_analysis_task_status(task_id, status, **kwargs)
             logger.info(f"Updated scheduled task {task_id} status to {status}")
         except Exception as e:
             logger.error(f"Error updating scheduled task status: {e}")
             raise e
-    
-    def get_scheduled_task(self, task_id: str) -> Optional[Dict[str, Any]]:
+    def update_analysis_task(self, task_id: str, **kwargs) -> None:
+        """Update scheduled task status and additional data."""
+        try:
+            self.analysis_task_repo.update_analysis_task(task_id, **kwargs)
+            logger.info(f"Updated scheduled task {task_id} status to {kwargs['status']}")
+        except Exception as e:
+            logger.error(f"Error updating scheduled task: {e}")
+            raise e
+    def toggle_task(self, task_id: str) -> None:
+        """Toggle scheduled task status and additional data."""
+        try:
+            self.analysis_task_repo.toggle_task(task_id)
+        
+        except Exception as e:
+            logger.error(f"Error toggling scheduled task: {e}")
+            raise e
+    def get_analysis_task(self, task_id: str) -> Optional[Dict[str, Any]]:
         """Get scheduled task by ID."""
         try:
-            return self.scheduled_task_repo.get_scheduled_task(task_id)
+            return self.analysis_task_repo.get_analysis_task(task_id)
         except Exception as e:
             logger.error(f"Error getting scheduled task: {e}")
             return None
     
-    def list_scheduled_tasks(self, user_id: str = "demo_user", status: str = None, schedule_type: str = None, limit: int = 50) -> List[Dict[str, Any]]:
+    def list_analysis_tasks(self, user_id: str = "demo_user", status: str = None, schedule_type: str = None, limit: int = 50) -> List[Dict[str, Any]]:
         """List scheduled tasks with optional filters."""
         try:
-            return self.scheduled_task_repo.list_scheduled_tasks(user_id, status, schedule_type, limit)
+            return self.analysis_task_repo.list_analysis_tasks(user_id, status, schedule_type, limit)
         except Exception as e:
             logger.error(f"Error listing scheduled tasks: {e}")
             return []
     
-    def list_scheduled_tasks_by_ticker(self, ticker: str, user_id: str = "demo_user", limit: int = 50) -> List[Dict[str, Any]]:
+    def list_analysis_tasks_by_ticker(self, ticker: str, user_id: str = "demo_user", limit: int = 50) -> List[Dict[str, Any]]:
         """List scheduled tasks filtered by ticker symbol."""
         try:
             logger.info(f"Service: Getting tasks for ticker={ticker.upper()}, user_id={user_id}, limit={limit}")
-            result = self.scheduled_task_repo.get_tasks_by_ticker(ticker.upper(), user_id, limit)
+            result = self.analysis_task_repo.get_tasks_by_ticker(ticker.upper(), user_id, limit)
             logger.info(f"Service: Retrieved {len(result)} tasks")
             return result
         except Exception as e:
             logger.error(f"Error listing scheduled tasks by ticker {ticker}: {e}")
             return []
     
-    def delete_scheduled_task(self, task_id: str) -> bool:
+    def delete_analysis_task(self, task_id: str) -> bool:
         """Delete scheduled task."""
         try:
-            success = self.scheduled_task_repo.delete_scheduled_task(task_id)
+            success = self.analysis_task_repo.delete_analysis_task(task_id)
             if success:
-                self.system_repo.log_system_event("scheduled_task_deleted", {
+                self.system_repo.log_system_event("analysis_task_deleted", {
                     "task_id": task_id
                 })
                 logger.info(f"Deleted scheduled task {task_id}")
@@ -213,6 +228,48 @@ class AnalysisService:
         except Exception as e:
             logger.error(f"Error deleting scheduled task: {e}")
             return False
+    
+    async def execute_analysis_task(self, ticker: str, analysts: List[str], 
+                                  research_depth: int, task_id: str) -> str:
+        """
+        Execute an analysis task immediately and return execution ID.
+        
+        Args:
+            ticker: Stock ticker symbol
+            analysts: List of analyst types
+            research_depth: Depth of research
+            task_id: task ID for tracking
+            
+        Returns:
+            str: Execution ID for tracking the analysis
+        """
+        try:
+            # Import here to avoid circular imports
+            from backend.agent.agent_runner import agent_runner
+            from datetime import datetime
+            import uuid
+            
+            # Generate execution ID
+            execution_id = str(uuid.uuid4())
+            
+            # Execute analysis with memory support
+            result = agent_runner.run_sync_analysis_with_memory(
+                task_id=execution_id,
+                ticker=ticker,
+                analysis_date=datetime.now().strftime("%Y-%m-%d"),
+                analysts=analysts,
+                research_depth=research_depth,
+                user_id="demo_user",
+                enable_memory=True,
+                execution_type="manual"
+            )
+            
+            logger.info(f"Analysis task executed with ID: {execution_id}")
+            return execution_id
+            
+        except Exception as e:
+            logger.error(f"Error executing analysis task: {e}")
+            raise e
 
 
 # Global service instance

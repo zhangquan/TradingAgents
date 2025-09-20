@@ -1,8 +1,8 @@
 import { api } from './index'
 import { 
-  ScheduledAnalysisRequest, 
-  ScheduledTaskResponse, 
-  ScheduledTaskInfo, 
+  AnalysisTaskRequest, 
+  AnalysisTaskResponse, 
+  AnalysisTaskInfo, 
   UnifiedTaskInfo, 
   TaskInfo,
   TasksByStockResponse
@@ -15,7 +15,7 @@ export const analysisApi = {
     return response.data
   },
 
-  // Get all tasks (only scheduled now)
+  // Get all tasks (analysis tasks)
   async getAllTasks() {
     const response = await api.get('/analysis/tasks')
     return response.data
@@ -47,8 +47,8 @@ export const analysisApi = {
     return response.data
   },
 
-  // Task API (only scheduled tasks now)
-  async createTask(request: ScheduledAnalysisRequest): Promise<ScheduledTaskResponse> {
+  // Task API (analysis tasks)
+  async createTask(request: AnalysisTaskRequest): Promise<AnalysisTaskResponse> {
     const response = await api.post('/analysis/tasks', request)
     return response.data
   },
@@ -58,7 +58,7 @@ export const analysisApi = {
     return response.data
   },
 
-  async getTask(taskId: string): Promise<ScheduledTaskInfo> {
+  async getTask(taskId: string): Promise<AnalysisTaskInfo> {
     const response = await api.get(`/analysis/tasks/${taskId}`)
     return response.data
   },
@@ -68,12 +68,12 @@ export const analysisApi = {
     return response.data
   },
 
-  async deleteScheduledTask(taskId: string) {
+  async deleteAnalysisTask(taskId: string) {
     const response = await api.delete(`/analysis/tasks/${taskId}`)
     return response.data
   },
 
-  async updateTask(taskId: string, request: ScheduledAnalysisRequest) {
+  async updateTask(taskId: string, request: AnalysisTaskRequest) {
     const response = await api.put(`/analysis/tasks/${taskId}`, request)
     return response.data
   },

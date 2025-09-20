@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class SystemConfigRepository(BaseRepository[SystemConfig]):
     """系统配置数据访问Repository"""
     
-    def __init__(self, session_factory=None):
+    def __init__(self):
         super().__init__(SystemConfig)
     
     def save_config(self, config_name: str, config_data: Dict[str, Any]) -> bool:
@@ -95,7 +95,7 @@ class SystemConfigRepository(BaseRepository[SystemConfig]):
 class ConfigRepository:
     """配置Repository统一入口"""
     
-    def __init__(self, session_factory):
-        self.system_config = SystemConfigRepository(session_factory)
+    def __init__(self):
+        self.system_config = SystemConfigRepository()
         # UserConfig通过UserRepository访问，保持一致性
 

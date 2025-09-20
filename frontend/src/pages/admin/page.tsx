@@ -19,6 +19,7 @@ import {
 import { systemApi } from '@/api/system'
 import { healthCheck } from '@/api/index'
 import { SystemStatus } from '@/components/SystemStatus'
+import { SchedulerStatus } from '@/components/SchedulerStatus'
 import { NotificationCenter } from '@/components/NotificationCenter'
 import { toast } from 'sonner'
 
@@ -119,8 +120,9 @@ export default function AdminPage() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* System Status */}
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 space-y-6">
           <SystemStatus />
+          <SchedulerStatus />
         </div>
 
         {/* Quick Stats */}

@@ -23,7 +23,7 @@ import { analysisApi } from '@/api/analysis'
 import { systemApi } from '@/api/system'
 import { watchlistApi } from '@/api/watchlist'
 import { AnalysisConfig } from '@/api/types'
-import { ScheduledAnalysisRequest, ScheduledTaskInfo } from '@/api/types'
+import { AnalysisTaskRequest, ScheduledTaskInfo } from '@/api/types'
 import { toast } from 'sonner'
 
 export default function AnalysisPage() {
@@ -39,7 +39,7 @@ export default function AnalysisPage() {
   const [watchlistLoading, setWatchlistLoading] = useState(false)
 
   // Task form state (scheduled only)
-  const [scheduleFormData, setScheduleFormData] = useState<ScheduledAnalysisRequest>({
+  const [scheduleFormData, setScheduleFormData] = useState<AnalysisTaskRequest>({
     ticker: '',
     analysts: [],
     research_depth: 1,
@@ -50,7 +50,7 @@ export default function AnalysisPage() {
   })
 
   // Edit form state
-  const [editFormData, setEditFormData] = useState<ScheduledAnalysisRequest>({
+  const [editFormData, setEditFormData] = useState<AnalysisTaskRequest>({
     ticker: '',
     analysts: [],
     research_depth: 1,

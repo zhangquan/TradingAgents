@@ -5,6 +5,8 @@ export default function Dashboard() {
     <div className="space-y-6">
       {/* Stock Data Dashboard */}
       <StockDataDashboard />
+      
+
     </div>
   )
 }

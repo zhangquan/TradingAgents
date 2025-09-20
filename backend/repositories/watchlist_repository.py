@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 class WatchlistRepository(BaseRepository[Watchlist]):
     """观察列表数据访问Repository"""
     
-    def __init__(self, session_factory=None):
+    def __init__(self):
         super().__init__(Watchlist)
     
     def get_user_watchlist(self, user_id: str) -> List[str]:

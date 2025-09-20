@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 class ConversationRepository(BaseRepository[ConversationState]):
     """对话状态数据访问Repository"""
     
-    def __init__(self, session_factory=None):
+    def __init__(self):
         super().__init__(ConversationState)
     
     def save_conversation_state(self, session_id: str, user_id: str, ticker: str, 
@@ -274,7 +274,7 @@ class ConversationRepository(BaseRepository[ConversationState]):
 class ChatMessageRepository(BaseRepository[ChatMessage]):
     """聊天消息数据访问Repository"""
     
-    def __init__(self, session_factory=None):
+    def __init__(self):
         super().__init__(ChatMessage)
     
     def save_chat_message(self, session_id: str, user_id: str, message_data: Dict[str, Any]) -> str:

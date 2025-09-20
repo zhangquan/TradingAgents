@@ -8,8 +8,8 @@ from typing import Dict, Any, List, Optional
 from pydantic import BaseModel, Field
 import logging
 
-from backend.services.conversation_memory_service import conversation_memory_service, ConversationState
-from backend.services.analysis_runner_service import analysis_runner_service
+from backend.services.conversation_service import conversation_memory_service, ConversationState
+from backend.agent.agent_runner import agent_runner
 
 logger = logging.getLogger(__name__)
 
@@ -126,7 +126,7 @@ async def restore_conversation(session_id: str):
     恢复会话状态用于chat界面
     """
     try:
-        restored_data = analysis_runner_service.get_conversation_session(session_id)
+        restored_data = conversation_memory_service.restore_conversation_for_chat(session_id)
         
         if not restored_data:
             raise HTTPException(status_code=404, detail=f"Conversation session {session_id} not found")
@@ -149,7 +149,7 @@ async def list_conversations(
     列出用户的会话历史
     """
     try:
-        conversations = analysis_runner_service.list_user_conversations(user_id)
+        conversations = conversation_memory_service.list_user_conversations(user_id)
         
         # 转换为响应格式
         result = []

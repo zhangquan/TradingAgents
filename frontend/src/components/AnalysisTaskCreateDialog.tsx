@@ -17,7 +17,7 @@ import {
 } from 'lucide-react'
 import { analysisApi } from '@/api/analysis'
 import { systemApi } from '@/api/system'
-import { AnalysisConfig, ScheduledAnalysisRequest } from '@/api/types'
+import { AnalysisConfig, AnalysisTaskRequest } from '@/api/types'
 import { toast } from 'sonner'
 import { 
   getSystemTimeZone, 
@@ -49,7 +49,7 @@ export function AnalysisTaskDialog({
   const [submitting, setSubmitting] = useState(false)
 
   // Form state
-  const [formData, setFormData] = useState<ScheduledAnalysisRequest>({
+  const [formData, setFormData] = useState<AnalysisTaskRequest>({
     ticker: ticker,
     analysts: [],
     research_depth: 1,

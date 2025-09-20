@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class UserRepository(BaseRepository[User]):
     """用户数据访问Repository"""
     
-    def __init__(self, session_factory=None):
+    def __init__(self):
         super().__init__(User)
     
     def create_user(self, user_id: str, user_data: Dict[str, Any]) -> bool:
@@ -121,7 +121,7 @@ class UserRepository(BaseRepository[User]):
 class UserConfigRepository(BaseRepository[UserConfig]):
     """用户配置数据访问Repository"""
     
-    def __init__(self, session_factory=None):
+    def __init__(self):
         super().__init__(UserConfig)
     
     def save_user_config(self, user_id: str, config_data: Dict[str, Any]) -> bool:

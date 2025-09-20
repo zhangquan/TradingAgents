@@ -4,4 +4,7 @@ alwaysApply: true
 
 always use uv cmd mananger project and run project
 Do not create test or demo files unless receiving commands from the user
-使用uv管理python工程
+
+## frontend project
+always use store  of zustand in component
+store use api comnicate with backend api  

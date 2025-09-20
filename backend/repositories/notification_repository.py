@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 class NotificationRepository(BaseRepository[Notification]):
     """通知数据访问Repository"""
     
-    def __init__(self, session_factory=None):
+    def __init__(self):
         super().__init__(Notification)
     
     def save_notification(self, user_id: str, notification: Dict[str, Any]) -> str:

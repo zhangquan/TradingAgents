@@ -17,13 +17,12 @@ logger = logging.getLogger(__name__)
 class ReportRepository(BaseRepository[Report]):
     """报告数据访问Repository"""
     
-    def __init__(self, session_factory=None):
+    def __init__(self):
         super().__init__(Report)
     
     def save_unified_report(self, analysis_id: str, user_id: str, ticker: str, sections: Dict[str, str], 
                            title: str = None, session_id: str = None,
-                           analysis_started_at: datetime = None, analysis_completed_at: datetime = None, 
-                           analysis_duration_seconds: float = None) -> str:
+                           analysis_started_at: datetime = None, analysis_completed_at: datetime = None) -> str:
         """保存统一报告"""
         try:
             with self._get_session() as db:
@@ -42,8 +41,6 @@ class ReportRepository(BaseRepository[Report]):
                         existing_report.analysis_started_at = analysis_started_at
                     if analysis_completed_at:
                         existing_report.analysis_completed_at = analysis_completed_at
-                    if analysis_duration_seconds is not None:
-                        existing_report.analysis_duration_seconds = analysis_duration_seconds
                     existing_report.updated_at = datetime.now()
                     db.commit()
                     logger.info(f"Updated unified report: {existing_report.report_id} for analysis {analysis_id}")
@@ -63,7 +60,6 @@ class ReportRepository(BaseRepository[Report]):
                         session_id=session_id,
                         analysis_started_at=analysis_started_at,
                         analysis_completed_at=analysis_completed_at,
-                        analysis_duration_seconds=analysis_duration_seconds,
                         status="generated"
                     )
                     
@@ -198,6 +194,13 @@ class ReportRepository(BaseRepository[Report]):
             logger.error(f"Error getting reports by session_id {session_id}: {e}")
             return []
     
+    def _compute_duration_seconds(self, started_at: datetime, completed_at: datetime) -> Optional[float]:
+        """计算分析持续时间（秒）"""
+        if started_at and completed_at:
+            duration = completed_at - started_at
+            return duration.total_seconds()
+        return None
+    
     def _to_dict(self, report: Report) -> Dict[str, Any]:
         """将Report模型转换为字典"""
         return {
@@ -211,7 +214,7 @@ class ReportRepository(BaseRepository[Report]):
             "status": report.status,
             "analysis_started_at": report.analysis_started_at.isoformat() + 'Z' if report.analysis_started_at else None,
             "analysis_completed_at": report.analysis_completed_at.isoformat() + 'Z' if report.analysis_completed_at else None,
-            "analysis_duration_seconds": report.analysis_duration_seconds,
+            "analysis_duration_seconds": self._compute_duration_seconds(report.analysis_started_at, report.analysis_completed_at),
             "created_at": report.created_at.isoformat() + 'Z' if report.created_at else None,
             "updated_at": report.updated_at.isoformat() + 'Z' if report.updated_at else None,
             # 向后兼容字段

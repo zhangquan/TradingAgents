@@ -11,7 +11,7 @@ from pathlib import Path
 
 from backend.repositories import (
     ReportRepository, ConversationRepository,
-    WatchlistRepository, SessionLocal
+    WatchlistRepository
 )
 
 logger = logging.getLogger(__name__)
@@ -22,9 +22,9 @@ class ReportsService:
     
     def __init__(self):
         """Initialize reports service with repositories."""
-        self.report_repo = ReportRepository(SessionLocal)
-        self.conversation_repo = ConversationRepository(SessionLocal)
-        self.watchlist_repo = WatchlistRepository(SessionLocal)
+        self.report_repo = ReportRepository()
+        self.conversation_repo = ConversationRepository()
+        self.watchlist_repo = WatchlistRepository()
     
     def _format_duration(self, duration_seconds: float) -> str:
         """Format duration in seconds to human-readable string."""

@@ -17,7 +17,8 @@ import {
   Save,
   RefreshCw,
   TrendingUp,
-  User
+  User,
+  Calendar
 } from 'lucide-react'
 import { systemApi } from '@/api/system'
 import { analysisApi } from '@/api/analysis'
@@ -25,6 +26,7 @@ import { healthCheck } from '@/api/index'
 import { AnalysisConfig } from '@/api/types'
 import { toast } from 'sonner'
 import { UserPreferencesSettings } from '@/components/UserPreferencesSettings'
+import { SchedulerStatus } from '@/components/SchedulerStatus'
 
 
 
@@ -175,7 +177,7 @@ export default function SettingsPage() {
       </div>
 
       <Tabs defaultValue="user-preferences" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="user-preferences" className="flex items-center space-x-2">
             <User className="h-4 w-4" />
             <span>用户偏好</span>
@@ -183,6 +185,10 @@ export default function SettingsPage() {
           <TabsTrigger value="ai-models" className="flex items-center space-x-2">
             <Brain className="h-4 w-4" />
             <span>AI 模型</span>
+          </TabsTrigger>
+          <TabsTrigger value="scheduler" className="flex items-center space-x-2">
+            <Calendar className="h-4 w-4" />
+            <span>调度器</span>
           </TabsTrigger>
           <TabsTrigger value="system" className="flex items-center space-x-2">
             <Server className="h-4 w-4" />
@@ -197,6 +203,11 @@ export default function SettingsPage() {
         {/* User Preferences */}
         <TabsContent value="user-preferences" className="space-y-6">
           <UserPreferencesSettings />
+        </TabsContent>
+
+        {/* Scheduler Management */}
+        <TabsContent value="scheduler" className="space-y-6">
+          <SchedulerStatus showFullView={true} />
         </TabsContent>
 
         {/* AI Models Configuration */}

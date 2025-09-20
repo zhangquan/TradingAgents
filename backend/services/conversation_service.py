@@ -12,7 +12,7 @@ from dataclasses import dataclass, asdict
 from collections import deque
 
 from backend.repositories import (
-    ConversationRepository, ChatMessageRepository, SessionLocal
+    ConversationRepository, ChatMessageRepository
 )
 
 logger = logging.getLogger(__name__)
@@ -111,8 +111,8 @@ class ConversationMemoryService:
     """
     
     def __init__(self):
-        self.conversation_repo = ConversationRepository(SessionLocal)
-        self.chat_message_repo = ChatMessageRepository(SessionLocal)
+        self.conversation_repo = ConversationRepository()
+        self.chat_message_repo = ChatMessageRepository()
     
     def create_conversation_session(self, 
                                   user_id: str,

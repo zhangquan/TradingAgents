@@ -1,5 +1,5 @@
 """
-Scheduled Task Repository - 任务调度相关数据访问
+Analysis Task Repository - 分析任务相关数据访问
 """
 
 from typing import Dict, Any, List, Optional
@@ -9,24 +9,24 @@ from sqlalchemy import and_, desc
 import logging
 
 from .base import BaseRepository
-from ..database.models import ScheduledTask
+from ..database.models import AnalysisTask
 
 logger = logging.getLogger(__name__)
 
 
-class ScheduledTaskRepository(BaseRepository[ScheduledTask]):
-    """任务调度数据访问Repository"""
+class AnalysisTaskRepository(BaseRepository[AnalysisTask]):
+    """分析任务数据访问Repository"""
     
-    def __init__(self, session_factory=None):
-        super().__init__(ScheduledTask)
+    def __init__(self):
+        super().__init__(AnalysisTask)
     
-    def create_scheduled_task(self, task_data: Dict[str, Any]) -> str:
-        """创建新的调度任务（立即或调度执行）"""
+    def create_analysis_task(self, task_data: Dict[str, Any]) -> str:
+        """创建新的分析任务（立即或调度执行）"""
         try:
             with self._get_session() as db:
                 task_id = task_data.get("task_id") or f"task_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}"
                 
-                task = ScheduledTask(
+                task = AnalysisTask(
                     task_id=task_id,
                     user_id=task_data.get("user_id", "demo_user"),
                     ticker=task_data["ticker"],
@@ -56,11 +56,11 @@ class ScheduledTaskRepository(BaseRepository[ScheduledTask]):
             logger.error(f"Error creating scheduled task: {e}")
             raise
     
-    def get_scheduled_task(self, task_id: str) -> Optional[Dict[str, Any]]:
+    def get_analysis_task(self, task_id: str) -> Optional[Dict[str, Any]]:
         """根据ID获取调度任务"""
         try:
             with self._get_session() as db:
-                task = db.query(ScheduledTask).filter(ScheduledTask.task_id == task_id).first()
+                task = db.query(AnalysisTask).filter(AnalysisTask.task_id == task_id).first()
                 
                 if not task:
                     return None
@@ -70,69 +70,34 @@ class ScheduledTaskRepository(BaseRepository[ScheduledTask]):
             logger.error(f"Error getting task {task_id}: {e}")
             return None
     
-    def list_scheduled_tasks(self, user_id: str = None, status: str = None, 
+    def list_analysis_tasks(self, user_id: str = None, status: str = None, 
                            schedule_type: str = None, limit: int = 50) -> List[Dict[str, Any]]:
-        """列出调度任务"""
+        """列出分析任务"""
         try:
             with self._get_session() as db:
-                query = db.query(ScheduledTask)
+                query = db.query(AnalysisTask)
                 
                 if user_id:
-                    query = query.filter(ScheduledTask.user_id == user_id)
+                    query = query.filter(AnalysisTask.user_id == user_id)
                 if status:
-                    query = query.filter(ScheduledTask.status == status)
+                    query = query.filter(AnalysisTask.status == status)
                 if schedule_type:
-                    query = query.filter(ScheduledTask.schedule_type == schedule_type)
+                    query = query.filter(AnalysisTask.schedule_type == schedule_type)
                 
-                tasks = query.order_by(desc(ScheduledTask.created_at)).limit(limit).all()
+                tasks = query.order_by(desc(AnalysisTask.created_at)).limit(limit).all()
                 
                 return [self._to_dict(task) for task in tasks]
         except Exception as e:
             logger.error(f"Error listing tasks: {e}")
             return []
     
-    def get_pending_tasks(self, schedule_type: str = None) -> List[Dict[str, Any]]:
-        """获取待执行的任务"""
+
+
+    def update_analysis_task(self, task_id: str, updates: Dict[str, Any]) -> bool:
+        """更新分析任务"""
         try:
             with self._get_session() as db:
-                query = db.query(ScheduledTask).filter(
-                    and_(
-                        ScheduledTask.status.in_(["created", "pending"]),
-                        ScheduledTask.enabled == True
-                    )
-                )
-                
-                if schedule_type:
-                    query = query.filter(ScheduledTask.schedule_type == schedule_type)
-                
-                tasks = query.order_by(ScheduledTask.created_at).all()
-                return [self._to_dict(task) for task in tasks]
-        except Exception as e:
-            logger.error(f"Error getting pending tasks: {e}")
-            return []
-    
-    def get_running_tasks(self, user_id: str = None) -> List[Dict[str, Any]]:
-        """获取正在运行的任务"""
-        try:
-            with self._get_session() as db:
-                query = db.query(ScheduledTask).filter(
-                    ScheduledTask.status.in_(["starting", "running"])
-                )
-                
-                if user_id:
-                    query = query.filter(ScheduledTask.user_id == user_id)
-                
-                tasks = query.order_by(ScheduledTask.started_at).all()
-                return [self._to_dict(task) for task in tasks]
-        except Exception as e:
-            logger.error(f"Error getting running tasks: {e}")
-            return []
-    
-    def update_scheduled_task(self, task_id: str, updates: Dict[str, Any]) -> bool:
-        """更新调度任务"""
-        try:
-            with self._get_session() as db:
-                task = db.query(ScheduledTask).filter(ScheduledTask.task_id == task_id).first()
+                task = db.query(AnalysisTask).filter(AnalysisTask.task_id == task_id).first()
                 
                 if task:
                     for key, value in updates.items():
@@ -148,11 +113,11 @@ class ScheduledTaskRepository(BaseRepository[ScheduledTask]):
                     return True
                 return False
         except Exception as e:
-            logger.error(f"Error updating scheduled task {task_id}: {e}")
+            logger.error(f"Error updating analysis task {task_id}: {e}")
             return False
     
-    def update_scheduled_task_status(self, task_id: str, status: str, **kwargs) -> bool:
-        """更新调度任务状态和附加数据"""
+    def update_analysis_task_status(self, task_id: str, status: str, **kwargs) -> bool:
+        """更新分析任务状态和附加数据"""
         try:
             updates = {"status": status}
             
@@ -165,9 +130,9 @@ class ScheduledTaskRepository(BaseRepository[ScheduledTask]):
             # 添加其他参数
             updates.update(kwargs)
             
-            return self.update_scheduled_task(task_id, updates)
+            return self.update_analysis_task(task_id, updates)
         except Exception as e:
-            logger.error(f"Error updating scheduled task status {task_id}: {e}")
+            logger.error(f"Error updating analysis task status {task_id}: {e}")
             return False
     
     def update_task_progress(self, task_id: str, progress: int, current_step: str = None) -> bool:
@@ -177,7 +142,7 @@ class ScheduledTaskRepository(BaseRepository[ScheduledTask]):
             if current_step:
                 updates["current_step"] = current_step
             
-            return self.update_scheduled_task(task_id, updates)
+            return self.update_analysis_task(task_id, updates)
         except Exception as e:
             logger.error(f"Error updating task progress {task_id}: {e}")
             return False
@@ -187,7 +152,7 @@ class ScheduledTaskRepository(BaseRepository[ScheduledTask]):
         """记录任务执行结果"""
         try:
             with self._get_session() as db:
-                task = db.query(ScheduledTask).filter(ScheduledTask.task_id == task_id).first()
+                task = db.query(AnalysisTask).filter(AnalysisTask.task_id == task_id).first()
                 
                 if task:
                     task.last_run = datetime.now()
@@ -207,41 +172,48 @@ class ScheduledTaskRepository(BaseRepository[ScheduledTask]):
             logger.error(f"Error recording task execution {task_id}: {e}")
             return False
     
-    def delete_scheduled_task(self, task_id: str) -> bool:
-        """删除调度任务"""
+    def delete_analysis_task(self, task_id: str) -> bool:
+        """删除分析任务"""
         try:
             with self._get_session() as db:
-                task = db.query(ScheduledTask).filter(ScheduledTask.task_id == task_id).first()
+                task = db.query(AnalysisTask).filter(AnalysisTask.task_id == task_id).first()
                 
                 if task:
                     db.delete(task)
                     db.commit()
                     
-                    logger.info(f"Deleted scheduled task: {task_id}")
+                    logger.info(f"Deleted analysis task: {task_id}")
                     return True
                 return False
         except Exception as e:
-            logger.error(f"Error deleting scheduled task {task_id}: {e}")
+            logger.error(f"Error deleting analysis task {task_id}: {e}")
             return False
     
     def enable_task(self, task_id: str) -> bool:
         """启用任务"""
-        return self.update_scheduled_task(task_id, {"enabled": True})
+        return self.update_analysis_task(task_id, {"enabled": True})
     
     def disable_task(self, task_id: str) -> bool:
         """禁用任务"""
-        return self.update_scheduled_task(task_id, {"enabled": False})
+        return self.update_analysis_task(task_id, {"enabled": False})
+    
+    def toggle_task(self, task_id: str ) -> bool:
+        """Toggle task status and additional data"""
+       
+        status = self.get_analysis_task(task_id)["enabled"]
+        kwargs = {"enabled": not status}
+        return self.update_analysis_task(task_id, kwargs)
     
     def get_tasks_by_ticker(self, ticker: str, user_id: str = None, limit: int = 50) -> List[Dict[str, Any]]:
         """Get tasks filtered by ticker symbol and optionally by user"""
         try:
             with self._get_session() as db:
-                query = db.query(ScheduledTask).filter(ScheduledTask.ticker == ticker.upper())
+                query = db.query(AnalysisTask).filter(AnalysisTask.ticker == ticker.upper())
                 
                 if user_id:
-                    query = query.filter(ScheduledTask.user_id == user_id)
+                    query = query.filter(AnalysisTask.user_id == user_id)
                 
-                tasks = query.order_by(desc(ScheduledTask.created_at)).limit(limit).all()
+                tasks = query.order_by(desc(AnalysisTask.created_at)).limit(limit).all()
                 
                 return [self._to_dict(task) for task in tasks]
         except Exception as e:
@@ -252,18 +224,18 @@ class ScheduledTaskRepository(BaseRepository[ScheduledTask]):
         """获取任务统计信息"""
         try:
             with self._get_session() as db:
-                query = db.query(ScheduledTask)
+                query = db.query(AnalysisTask)
                 if user_id:
-                    query = query.filter(ScheduledTask.user_id == user_id)
+                    query = query.filter(AnalysisTask.user_id == user_id)
                 
                 from sqlalchemy import func
                 stats = db.query(
-                    ScheduledTask.status,
-                    func.count(ScheduledTask.id).label('count')
-                ).group_by(ScheduledTask.status)
+                    AnalysisTask.status,
+                    func.count(AnalysisTask.id).label('count')
+                ).group_by(AnalysisTask.status)
                 
                 if user_id:
-                    stats = stats.filter(ScheduledTask.user_id == user_id)
+                    stats = stats.filter(AnalysisTask.user_id == user_id)
                 
                 status_counts = dict(stats.all())
                 
@@ -278,8 +250,8 @@ class ScheduledTaskRepository(BaseRepository[ScheduledTask]):
             logger.error(f"Error getting task statistics: {e}")
             return {}
     
-    def _to_dict(self, task: ScheduledTask) -> Dict[str, Any]:
-        """将ScheduledTask模型转换为字典"""
+    def _to_dict(self, task: AnalysisTask) -> Dict[str, Any]:
+        """将AnalysisTask模型转换为字典"""
         return {
             "task_id": task.task_id,
             "user_id": task.user_id,
